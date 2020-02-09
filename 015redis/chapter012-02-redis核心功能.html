@@ -1,0 +1,1620 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>chapter012-02-redis核心功能.md</title>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+
+<style>
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+body {
+	font-family: "Segoe WPC", "Segoe UI", "SFUIText-Light", "HelveticaNeue-Light", sans-serif, "Droid Sans Fallback";
+	font-size: 14px;
+	padding: 0 12px;
+	line-height: 22px;
+	word-wrap: break-word;
+}
+
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	font-family: sans-serif;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
+
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection .code-active-line:before,
+body.showEditorSelection .code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	color: #4080D0;
+	text-decoration: none;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+hr {
+	border: 0;
+	height: 2px;
+	border-bottom: 2px solid;
+}
+
+h1 {
+	padding-bottom: 0.3em;
+	line-height: 1.2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h1, h2, h3 {
+	font-weight: normal;
+}
+
+h1 code,
+h2 code,
+h3 code,
+h4 code,
+h5 code,
+h6 code {
+	font-size: inherit;
+	line-height: auto;
+}
+
+a:hover {
+	color: #4080D0;
+	text-decoration: underline;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table > thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+table > thead > tr > th,
+table > thead > tr > td,
+table > tbody > tr > th,
+table > tbody > tr > td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0 7px 0 5px;
+	padding: 0 16px 0 10px;
+	border-left: 5px solid;
+}
+
+code {
+	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
+	font-size: 14px;
+	line-height: 19px;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+.mac code {
+	font-size: 12px;
+	line-height: 18px;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+/** Theming */
+
+.vscode-light,
+.vscode-light pre code {
+	color: rgb(30, 30, 30);
+}
+
+.vscode-dark,
+.vscode-dark pre code {
+	color: #DDD;
+}
+
+.vscode-high-contrast,
+.vscode-high-contrast pre code {
+	color: white;
+}
+
+.vscode-light code {
+	color: #A31515;
+}
+
+.vscode-dark code {
+	color: #D7BA7D;
+}
+
+.vscode-light pre:not(.hljs),
+.vscode-light code > div {
+	background-color: rgba(220, 220, 220, 0.4);
+}
+
+.vscode-dark pre:not(.hljs),
+.vscode-dark code > div {
+	background-color: rgba(10, 10, 10, 0.4);
+}
+
+.vscode-high-contrast pre:not(.hljs),
+.vscode-high-contrast code > div {
+	background-color: rgb(0, 0, 0);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light table > thead > tr > th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark table > thead > tr > th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light hr,
+.vscode-light table > tbody > tr + tr > td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark hr,
+.vscode-dark table > tbody > tr + tr > td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+.vscode-light blockquote,
+.vscode-dark blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.vscode-high-contrast blockquote {
+	background: transparent;
+	border-color: #fff;
+}
+</style>
+
+<style>
+/* Tomorrow Theme */
+/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+	color: #8e908c;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+	color: #c82829;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+	color: #f5871f;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+	color: #eab700;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+	color: #718c00;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+	color: #4271ae;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+	color: #8959a8;
+}
+
+.hljs {
+	display: block;
+	overflow-x: auto;
+	color: #4d4d4c;
+	padding: 0.5em;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}
+</style>
+
+<style>
+/*
+ * Markdown PDF CSS
+ */
+
+ body {
+	font-family:  "Meiryo", "Segoe WPC", "Segoe UI", "SFUIText-Light", "HelveticaNeue-Light", sans-serif, "Droid Sans Fallback";
+}
+
+pre {
+	background-color: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
+}
+
+blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.emoji {
+	height: 1.4em;
+}
+
+/* for inline code */
+:not(pre):not(.hljs) > code {
+	color: #C9AE75; /* Change the old color so it seems less like an error */
+	font-size: inherit;
+}
+
+/* Page Break : use <div class="page"/> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
+
+</style>
+
+</head>
+<body>
+<h2 id="%E7%AC%AC%E5%8D%81%E4%BA%8C%E7%AB%A0-redis-%E7%BC%93%E5%AD%98%E6%9C%8D%E5%8A%A1">第十二章 Redis 缓存服务</h2>
+<h3 id="%E7%AC%AC%E4%BA%8C%E8%8A%82-redis-%E6%A0%B8%E5%BF%83%E5%8A%9F%E8%83%BD">第二节  Redis 核心功能</h3>
+<h4 id="1221-centos76-%E4%B8%AD%E8%BF%9C%E7%A8%8B%E7%99%BB%E9%99%86-redis">12.2.1 CentOS7.6 中远程登陆 redis</h4>
+<pre class="hljs"><code><div>上一节中我们使用 redis-cli 登陆本地编译安装的 redis 服务器端，进行了简单的访问操作，下面我们我们准备两台  
+CentOS 7.6 服务器并编译安装好 redis4.0.14 版本， 启动一台 redis 服务， 另外一台进行远程登陆操作：
+
+1. 两台服务器 基本信息：
+
+操作系统           主机名        ip                   redis版本
+CentOS7.6         node1         192.168.130.133      4.0.14
+CentOS7.6         node2         192.168.130.134      4.0.14
+
+
+
+2. 启动 node1 的 redis 服务， 在 node2 服务器上使用 redis-cli 命令进行连接：
+[root@node1 ~]<span class="hljs-comment"># </span>
+[root@node1 ~]<span class="hljs-comment"># systemctl start redis</span>
+[root@node1 ~]<span class="hljs-comment">#</span>
+[root@node1 ~]<span class="hljs-comment"># </span>
+[root@node1 ~]<span class="hljs-comment"># ss -ntl</span>
+State       Recv-Q Send-Q Local Address:Port                Peer Address:Port              
+LISTEN      0      511        127.0.0.1:6379                           *:*                  
+LISTEN      0      128                *:22                             *:*                  
+LISTEN      0      100        127.0.0.1:25                             *:*                  
+LISTEN      0      128               :::22                            :::*                  
+LISTEN      0      100              ::1:25                            :::*            
+[root@node1 ~]<span class="hljs-comment"># </span>
+[root@node1 ~]<span class="hljs-comment"># </span>
+[root@node1 ~]<span class="hljs-comment"># redis-cli</span>
+127.0.0.1:6379&gt; 
+127.0.0.1:6379&gt; <span class="hljs-built_in">set</span> name magedu
+OK
+127.0.0.1:6379&gt; 
+127.0.0.1:6379&gt; get name
+<span class="hljs-string">"magedu"</span>
+127.0.0.1:6379&gt; 
+127.0.0.1:6379&gt; <span class="hljs-built_in">exit</span>
+[root@node1 ~]<span class="hljs-comment"># </span>
+[root@node1 ~]<span class="hljs-comment">#</span>
+
+使用 node2 连接 node1 的 redis 服务， -h 指定 ip 地址， -p 指定端口，
+连接时提示连接拒绝：
+[root@node2 ~]<span class="hljs-comment"># redis-cli -h 192.168.130.133 -p 6379</span>
+Could not connect to Redis at 192.168.130.133:6379: Connection refused
+Could not connect to Redis at 192.168.130.133:6379: Connection refused
+not connected&gt; 
+not connected&gt; <span class="hljs-built_in">exit</span>
+[root@node2 ~]<span class="hljs-comment"># </span>
+[root@node2 ~]<span class="hljs-comment"># </span>
+[root@node2 ~]<span class="hljs-comment">#</span>
+
+
+
+3. 连接失败原因在于 node1 的 redis 默认监听在本地 127.0.0.1 端口，下面我们修改 node1 的  
+配置文件，重启服务：
+[root@node1 ~]<span class="hljs-comment"># </span>
+[root@node1 ~]<span class="hljs-comment"># systemctl stop redis</span>
+[root@node1 ~]<span class="hljs-comment"># </span>
+[root@node1 ~]<span class="hljs-comment"># </span>
+[root@node1 ~]<span class="hljs-comment"># sed -i 's@bind 127.0.0.1@bind 192.168.130.133@' /apps/redis/etc/redis.conf </span>
+[root@node1 ~]<span class="hljs-comment"># </span>
+[root@node1 ~]<span class="hljs-comment"># </span>
+[root@node1 ~]<span class="hljs-comment"># systemctl start redis</span>
+[root@node1 ~]<span class="hljs-comment"># </span>
+[root@node1 ~]<span class="hljs-comment"># ss -ntl</span>
+State       Recv-Q Send-Q Local Address:Port                Peer Address:Port              
+LISTEN      0      511    192.168.130.133:6379                           *:*                  
+LISTEN      0      128                *:22                             *:*                  
+LISTEN      0      100        127.0.0.1:25                             *:*                  
+LISTEN      0      128               :::22                            :::*                  
+LISTEN      0      100              ::1:25                            :::*                  
+[root@node1 ~]<span class="hljs-comment"># </span>
+[root@node1 ~]<span class="hljs-comment">#</span>
+
+使用 node2 连接 node1 的 redis， 连接成功：
+[root@node2 ~]<span class="hljs-comment"># </span>
+[root@node2 ~]<span class="hljs-comment"># redis-cli -h 192.168.130.133 -p 6379</span>
+192.168.130.133:6379&gt; get name
+<span class="hljs-string">"magedu"</span>
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; <span class="hljs-built_in">exit</span>
+[root@node2 ~]<span class="hljs-comment">#</span>
+</div></code></pre>
+<h4 id="1222-centos76-%E4%B8%AD%E4%BD%BF%E7%94%A8-python-%E7%A8%8B%E5%BA%8F%E8%BF%9C%E7%A8%8B%E8%AE%BF%E9%97%AE-redis">12.2.2 CentOS7.6 中使用 python 程序远程访问 redis</h4>
+<pre class="hljs"><code><div>我们继续使用上一小节的 node1 和 node2 服务器，下面我们在 node2 服务器上编写一个 python 程序
+测试一下使用 python 访问 node1 的 redis 服务：
+1. 首先我们在 node2 节点上安装 redis 的 python 客户端库
+[root@node2 ~]<span class="hljs-comment"># </span>
+[root@node2 ~]<span class="hljs-comment"># </span>
+[root@node2 ~]<span class="hljs-comment"># yum install python2-pip</span>
+Loaded plugins: fastestmirror
+Loading mirror speeds from cached hostfile
+ * base: mirror.bit.edu.cn
+ * epel: mirrors.yun-idc.com
+ * extras: mirror.bit.edu.cn
+ * updates: mirrors.huaweicloud.com
+Package python2-pip-8.1.2-8.el7.noarch already installed and latest version
+Nothing to <span class="hljs-keyword">do</span>
+[root@node2 ~]<span class="hljs-comment"># </span>
+[root@node2 ~]<span class="hljs-comment"># </span>
+[root@node2 ~]<span class="hljs-comment"># pip install --upgrade pip</span>
+Collecting pip
+  Downloading https://files.pythonhosted.org/packages/5c/e0/be401c003291b56efc55aeba6a80ab790d3d4cece2778288d65323009420/pip-19.1.1-py2.py3-none-any.whl (1.4MB)
+    100% |████████████████████████████████| 1.4MB 30kB/s 
+Installing collected packages: pip
+  Found existing installation: pip 8.1.2
+    Uninstalling pip-8.1.2:
+      Successfully uninstalled pip-8.1.2
+Successfully installed pip-19.1.1
+[root@node2 ~]<span class="hljs-comment"># </span>
+[root@node2 ~]<span class="hljs-comment"># </span>
+[root@node2 ~]<span class="hljs-comment"># </span>
+[root@node2 ~]<span class="hljs-comment"># </span>
+[root@node2 ~]<span class="hljs-comment"># pip install redis</span>
+DEPRECATION: Python 2.7 will reach the end of its life on January 1st, 2020. Please upgrade your Python as Python 2.7 will not be maintained after that date. A future version of pip will drop support <span class="hljs-keyword">for</span> Python 2.7.
+Collecting redis
+  Downloading https://files.pythonhosted.org/packages/ac/a7/cff10cc5f1180834a3ed564d148fb4329c989cbb1f2e196fc9a10fa07072/redis-3.2.1-py2.py3-none-any.whl (65kB)
+     |████████████████████████████████| 71kB 65kB/s 
+Installing collected packages: redis
+Successfully installed redis-3.2.1
+[root@node2 ~]<span class="hljs-comment"># </span>
+[root@node2 ~]<span class="hljs-comment"># </span>
+[root@node2 ~]<span class="hljs-comment">#</span>
+[root@node2 ~]<span class="hljs-comment"># </span>
+[root@node2 ~]<span class="hljs-comment"># vi pyredis.py </span>
+[root@node2 ~]<span class="hljs-comment">#  </span>
+[root@node2 ~]<span class="hljs-comment"># cat pyredis.py </span>
+<span class="hljs-comment">#!/bin/python2</span>
+<span class="hljs-comment">#Author: gordon</span>
+import redis
+import time
+pool = redis.ConnectionPool(host=<span class="hljs-string">"192.168.130.133"</span>, port=6379,password=<span class="hljs-string">""</span>)
+rcon = redis.Redis(connection_pool=pool)
+<span class="hljs-built_in">print</span>(rcon.get(<span class="hljs-string">"name"</span>))
+[root@node2 ~]<span class="hljs-comment"># </span>
+[root@node2 ~]<span class="hljs-comment"># </span>
+[root@node2 ~]<span class="hljs-comment"># ./pyredis.py </span>
+magedu
+[root@node2 ~]<span class="hljs-comment"># </span>
+[root@node2 ~]<span class="hljs-comment">#</span>
+</div></code></pre>
+<h4 id="1223-redis-4014-%E5%B8%B8%E8%A7%81%E9%85%8D%E7%BD%AE">12.2.3 redis-4.0.14 常见配置</h4>
+<pre class="hljs"><code><div>1. <span class="hljs-built_in">bind</span> 配置 redis 服务的网络监听地址，一个地址， 使用空格分隔的多个地址， 或者 * 
+比如：
+      <span class="hljs-built_in">bind</span> 192.168.130.133
+      <span class="hljs-built_in">bind</span> 192.168.130.133 127.0.0.1
+      <span class="hljs-built_in">bind</span> *
+
+
+2. port 配置 redis 服务的网络监听地址
+比如：
+      prot 6379
+
+
+3. tcp-backlog 配置 redis 服务器端收到客户端 TCP 三次握手时的 /proc/sys/net/ipv4/tcp_max_syn_backlog 值，
+   默认的 511 即可
+比如：
+      tcp-backlog 511
+
+
+4. timeout 配置 redis 客户端网络空闲多长时间后自动断开连接，单位为妙， 为 0 时不启用该功能
+比如：
+      timeout 0
+
+
+5. tcp-keepalive 配置 tcp 会话保持时间，单位为秒
+比如：
+      tcp-keepalive 300
+
+
+6. daemonize 配置 redis 是否以后台进程方式运行，yes 代表后台运行， no 代表前台运行
+比如： daemonize yes
+
+
+7. supervised 配置 redis 服务管理方式， no 代表不做配置， centos6 中可以使用 upstart 方式，
+   centos7 中可以使用 systemd 方式， auto 根据 UPSTART_JOB 和 NOTIFY_SOCKET 变量自动判断
+比如：
+      supervised systemd
+
+
+8. pidfile 配置 redis 进程的 pid 文件存放位置
+比如：
+      pidfile /var/run/redis_6379.pid
+
+
+9. loglevel 配置 redis 服务的日志级别，一共四个 debug verbose notice warning
+比如：
+      loglevel notice
+
+
+10. logfile 配置 redis 服务日志的存放路径
+比如：
+      logfile <span class="hljs-string">"/apps/redis/log/redis.log"</span>
+
+
+11. databases 配置 redis 包含的数据库数量
+比如：
+      databases 16
+
+
+12. always-show-logo 配置 redis 启动时是否打印一个 redis 图案到日志中 yes 或者 no
+比如：
+      always-show-logo yes
+
+13. save  配置 redis 保存数据到磁盘的触发条件，后跟两个参数，第一个是时间，第二个是修改过数据  
+    的次数，save 900 1   表示 900 表内只要有一个数据修改过，就保存一次数据，可以同时写多个
+    save 配置段，他们之间是或的关系，有一个 save 满足条件即可触发保存操作
+比如：
+      save 900 1
+      save 300 10
+      save 60 10000
+
+14. stop-writes-on-bgsave-error 配置当 bgsave 出错时停止 redis 写入操作，建议关闭
+比如：
+      stop-writes-on-bgsave-error yes
+
+
+15. rdbcompression 配置是否将 redis 保存在磁盘上的数据进行压缩，以节省磁盘空间
+比如：
+      rdbcompression yes
+
+
+16. dbfilename 配置 redis 保存到磁盘中的数据的文件名
+比如：
+      dbfilename dump.rdb
+
+  
+17. dir 配置 redis 保存数据到磁盘中的路径
+比如：
+      dir   /apps/redis/data/
+
+
+18. slave-serve-stale-data 配置当 redis 主从架构中 salve 节点和 master 节点端口连接，或者
+    从节点正则进行同步数据时是否可以对外提供相应，yes 时 salve 可以相应查询请求，no 时 提示
+    SYNC with master <span class="hljs-keyword">in</span> progress 错误信息
+比如：
+      slave-serve-stale-data  yes
+
+
+19. slave-read-only 配置 redis 主从架构中 slave 只能相应读请求，进制写入操作。
+比如：
+      slave-read-only yes
+
+
+20. repl-diskless-sync 配置 redis 从节点需要进行完全同步时，是否要讲被通报的数据先保存在
+   master 的磁盘上，然后再同步数据。
+比如：
+      repl-diskless-sync no
+
+
+21. repl-diskless-sync-delay 配置 redis 从节点一旦开始给一个 salve 进行数据同步时，在结束前
+    不能再给其他 slave 同步数据，后面跟上延迟时间，单位为秒
+比如：
+      repl-diskless-sync-delay 5
+
+
+22. repl-ping-slave-period 配置 redis 从节点给 master 节点 发送 ping 请求的时间间隔默认 10 秒
+比如：
+      repl-ping-slave-period 10
+
+
+23. repl-timeout 配置 redis 主从架构连接超时时间
+比如：
+      repl-timeout 60s
+
+
+24. repl-backlog-size 配置 redis 主从架构 master 的复制缓冲空间大小，默认1mb空间
+比如：
+      repl-backlog-size 1mb
+
+
+25. repl-backlog-ttl 配置 master 多长时间没有 slave 节点连接它时，清空缓冲空间
+比如：
+      repl-backlog-ttl 3600
+
+
+26. replica-priority 配置 redis 的 slave 节点进行选举时的优先权重，为 0 时，不会被选举成 master
+比如：
+      replica-priority 100
+
+
+27. requirepass 配置 redis 的连接密码
+比如：
+      requirepass 123456
+
+
+28. rename-command 配置 重命名 redis 命令，
+比如：
+      rename-command CONFIG adminconfig
+
+
+29. maxclients 配置 redis 最大客户端连接数
+比如：
+      maxclients 10000
+
+
+30. maxmemory 配置 redis 最大内存空间，单位为 byte ， slave 的缓冲空间不计算再内
+比如：
+      maxmemory  1048576000
+
+
+31. appendonly 配置 redis 是否开启 AOF 日志功能，默认使用的是 rdb 方式
+比如：
+      appendonly yes
+
+  
+32. appendfilename 配置 redis AOF 文件的名称
+比如：
+      appendfilename <span class="hljs-string">"appendonly.aof"</span>
+
+
+33. appendfsync 配置 aof 同步数据到磁盘的时间， always 表示每次数据变化都同步磁盘，no
+    表示不主动同步磁盘，或者直接配置具体的时间 
+比如：
+      appendfsync 1
+
+    
+34. no-appendfsync-on-rewrite 配置 在 aof rewrite 期间,是否对 aof 新记录的 append 
+    暂缓使用文件同步策略,主要考虑磁盘 IO 开支和请求阻塞时间
+比如：
+      no-appendfsync-on-rewrite no
+
+
+35. auto-aof-rewrite-percentage 配置 当 Aof <span class="hljs-built_in">log</span> 增长超过指定百分比例时，重写 <span class="hljs-built_in">log</span> file，
+    设置为 0 表示不自动重写 Aof 日志，重写是为了使 aof 体积保持最小，而确保保存最完整的数据
+比如：
+      auto-aof-rewrite-percentage 100
+
+
+36. auto-aof-rewrite-min-size 配置 触发 aof rewrite 的最小文件大小
+比如：
+      auto-aof-rewrite-min-size 64mb
+
+
+37. aof-load-truncated 配置 是否加载由于其他原因导致的末尾异常的 AOF 文件
+比如： 
+      aof-load-truncated yes
+
+
+38. aof-use-rdb-preamble 配置 redis 使用 rdb 和 aof 混合模式，4.0 版本新功能
+比如：
+      aof-use-rdb-preamble yes
+  
+
+39. lua-time-limit 5000 配置 lua 脚本执行的最大时间
+比如：
+      lua-time-limit 5000
+
+  
+40. cluster-enabled 配置 redis 是否开启集群模式，默认为单机模式
+比如：
+      cluster-enabled yes
+
+  
+41. cluster-config-file 配置 node 节点生成的配置文件名称
+比如：
+      cluster-config-file nodes-6379.conf
+
+  
+42. cluster-node-timeout 配置 redis 集群中 node 节点连接超时时间
+比如：
+      cluster-node-timeout 15000
+
+
+43. cluster-replica-validity-factor 配置 slave 和 master 断开多长时间后就会被选举为主
+    节点，时间单位为秒
+比如：
+      cluster-replica-validity-factor 10
+
+
+44. slowlog-log-slower-than 配置 redis 记录慢日志的时间标准，单位为微秒
+比如：
+      slowlog-log-slower-than 10000
+
+      
+45. slowlog-max-len 配置 慢日志最大条数， 超过最大条数后进行滚动更新
+比如：
+      slowlog-max-len 128
+</div></code></pre>
+<h4 id="1224-redis-4014-%E5%B8%B8%E8%A7%81%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E6%93%8D%E4%BD%9C">12.2.4 redis-4.0.14 常见数据类型操作</h4>
+<pre class="hljs"><code><div>1. 字符串类型
+redis 最基本的功能就是存储 key-value 键值数据对，其中 key 和 value 可以使用字符串来表示。
+字符串的最大长度为 512MB ，可以满足绝大多数使用场景，当用作 key 使用时，不宜过长。
+
+
+
+2.redis 数据创建、查询、删除操作
+redis 中的字符串使用频率非常高，因为所有的 key 都需要使用它，下面我们回顾一下之前在安装完 
+reids 后进行测试的过程，我们使用 redis-cli 登录操作 redis ， 然后 使用 <span class="hljs-built_in">set</span> 命令对 key 
+为 name 的字符串进行赋值操作， 将其值设置为 magedu 字符串。设置成功后我们又使用 get 命令
+获取 key 值为 name 字符串所对应的 value 的值。
+
+下面我们使用第一小节中的 node1 和 node2 进行 redis 的演示操作，我们使用 node2 远程登陆到
+node1 中，对其进行操作，如图：
+
+[root@node2 ~]<span class="hljs-comment"># </span>
+[root@node2 ~]<span class="hljs-comment"># </span>
+[root@node2 ~]<span class="hljs-comment"># redis-cli -h 192.168.130.133 -p 6379</span>
+192.168.130.133:6379&gt; <span class="hljs-built_in">set</span> name magedu
+OK
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; get name
+<span class="hljs-string">"magedu"</span>
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt;  
+
+
+默认情况下使用 <span class="hljs-built_in">set</span> 创建 key-value 数据时，如果 key 已经存在，本次 <span class="hljs-built_in">set</span> 操作将会把之前的数据
+覆盖掉：
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; get name
+<span class="hljs-string">"magedu"</span>
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; <span class="hljs-built_in">set</span> name magedu.com
+OK
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; get name
+<span class="hljs-string">"magedu.com"</span>
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt;
+
+
+下面我们使用一种覆盖保护操作方式， 使用 <span class="hljs-built_in">set</span> 命令时，当 key 已存在则报错，不进行 <span class="hljs-built_in">set</span> 赋值，
+要想实现覆盖操作，可以在赋值语句的最后添加 nx 选项实现该功能。若不想覆盖则可以使用 xx 选
+项，其中只有当 key 存在时才可以使用 xx 选项：
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; get name
+<span class="hljs-string">"magedu.com"</span>
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; <span class="hljs-built_in">set</span> name magedu nx
+(nil)
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; get name 
+<span class="hljs-string">"magedu.com"</span>
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; <span class="hljs-built_in">set</span> name magedu xx
+OK
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; get name 
+<span class="hljs-string">"magedu"</span>
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt;
+
+
+redis 一般当做缓存服务器使用， 他支持数据过期删除功能。 下面我们设置 name 保存的数据有效期为
+5 秒， 使用 ex 选项 和 5 即可：
+192.168.130.133:6379&gt; <span class="hljs-built_in">set</span> name magedu
+OK
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; get name 
+<span class="hljs-string">"magedu"</span>
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; <span class="hljs-built_in">set</span> name linux ex 5
+OK
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; get name
+<span class="hljs-string">"linux"</span>
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; get name
+(nil)
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt;
+
+还可以使用 px 选项，他指定的时间过期单位为毫秒，我们设置一个过期时间为 5000 毫秒的 key-value 
+数据：
+192.168.130.133:6379&gt; <span class="hljs-built_in">set</span> name magedu
+OK
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; get name 
+<span class="hljs-string">"magedu"</span>
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; <span class="hljs-built_in">set</span> name linux px 5000 
+OK
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; get name
+<span class="hljs-string">"linux"</span>
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; get name
+(nil)
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt;
+
+
+
+之前我们使用的 <span class="hljs-built_in">set</span> 命令一次只能创建一个 key-value 数据，要想一次创建多个 key-value 数据，
+我们可以使用 mset 命令， 查询数据时也可以使用对应的 mget 命令，如下：
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; mset name magedu addr Beijing
+OK
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; get name
+<span class="hljs-string">"magedu"</span>
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; get addr
+<span class="hljs-string">"Beijing"</span>
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt;
+192.168.130.133:6379&gt; mget name addr
+1) <span class="hljs-string">"magedu"</span>
+2) <span class="hljs-string">"Beijing"</span>
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; 
+
+
+
+redis 中还支持对原有字符串数据的追加功能，使用 append 命令，如下：
+192.168.130.133:6379&gt; <span class="hljs-built_in">set</span> name magedu
+OK
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; get name
+<span class="hljs-string">"magedu"</span>
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; append name .com
+(<span class="hljs-built_in">integer</span>) 10
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; get name
+<span class="hljs-string">"magedu.com"</span>
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; append name .cn
+(<span class="hljs-built_in">integer</span>) 13
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; get name
+<span class="hljs-string">"magedu.com.cn"</span>
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt;
+
+
+有些场景下，我们只想获取 key-value 数据中 value 字符串的长度，这时可以直接使用 strlen 命令，如下：
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; <span class="hljs-built_in">set</span> name magedu
+OK
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; get name 
+<span class="hljs-string">"magedu"</span>
+192.168.130.133:6379&gt; strlen name
+(<span class="hljs-built_in">integer</span>) 6
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt;
+
+
+上面的操作中，我们创建的 key-value 数据都是字符串类型的， 下面我们创建一个数值型的数据，redis 可以
+使用 incr 对进行加 1 操作， decr 对其进行减 1 操作：
+
+192.168.130.133:6379&gt; <span class="hljs-built_in">set</span> age 22
+OK
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; get age
+<span class="hljs-string">"22"</span>
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; incr age
+(<span class="hljs-built_in">integer</span>) 23
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; incr age
+(<span class="hljs-built_in">integer</span>) 24
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; decr age
+(<span class="hljs-built_in">integer</span>) 23
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; decr age
+(<span class="hljs-built_in">integer</span>) 22
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt;
+
+
+下面我介绍最后一个 redis 命令 del 他可以删除指定的数据内容，如下：
+192.168.130.133:6379&gt; <span class="hljs-built_in">set</span> name magedu
+OK
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; get name 
+<span class="hljs-string">"magedu"</span>
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; del name
+(<span class="hljs-built_in">integer</span>) 1
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt;
+
+
+
+
+3. 列表数据结构操作
+redis 中除了可以存储最常用的 key-value 数据内容外，还支持其他高级数据结构。 list 是一个双向可
+读写的管道，其头部是左侧尾部是右侧，一个列表最多可以包含 2^32-1 个元素。 创建 list 和向list中
+添加数据可以使用 lpush 或者 rpush，分别代表从 list 的左边插入数据和右边插入数据：
+
+192.168.130.133:6379&gt; lpush list1 one
+(<span class="hljs-built_in">integer</span>) 1
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; lpush list1 two
+(<span class="hljs-built_in">integer</span>) 2
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; rpush list1 three
+(<span class="hljs-built_in">integer</span>) 3
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; rpush list1 four
+(<span class="hljs-built_in">integer</span>) 4
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; rpush list1 five
+(<span class="hljs-built_in">integer</span>) 5
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; 
+
+使用 llen 可以获取指定 list 的元素个数：
+192.168.130.133:6379&gt; llen list1
+(<span class="hljs-built_in">integer</span>) 5
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt;
+
+
+根据 list 元素的 index 编号获取指定 list 中的元素，编号是从左侧开始的：
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; lindex list1 0
+<span class="hljs-string">"two"</span>
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; lindex list1 1
+<span class="hljs-string">"one"</span>
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; lindex list1 2
+<span class="hljs-string">"three"</span>
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; lindex list1 3
+<span class="hljs-string">"four"</span>
+192.168.130.133:6379&gt; lindex list1 4
+<span class="hljs-string">"five"</span>
+192.168.130.133:6379&gt;
+192.168.130.133:6379&gt; lindex list1 5
+(nil)
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt;
+
+
+除了使用 lindex 或者指定编号的元素， 我们还可以指定编号范围，一次获取多个元素：
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; lrange list1 0 2
+1) <span class="hljs-string">"two"</span>
+2) <span class="hljs-string">"one"</span>
+3) <span class="hljs-string">"three"</span>
+192.168.130.133:6379&gt; lrange list1 0 3
+1) <span class="hljs-string">"two"</span>
+2) <span class="hljs-string">"one"</span>
+3) <span class="hljs-string">"three"</span>
+4) <span class="hljs-string">"four"</span>
+192.168.130.133:6379&gt; lrange list1 0 6
+1) <span class="hljs-string">"two"</span>
+2) <span class="hljs-string">"one"</span>
+3) <span class="hljs-string">"three"</span>
+4) <span class="hljs-string">"four"</span>
+5) <span class="hljs-string">"five"</span>
+192.168.130.133:6379&gt;
+
+
+下面我们使用 lset 命令修改指定元素的值，元素必须提前存在，否则修改报错：
+192.168.130.133:6379&gt; lset list1 0 one
+OK
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; lset list1 1 two
+OK
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; lrange list1 0 6
+1) <span class="hljs-string">"one"</span>
+2) <span class="hljs-string">"two"</span>
+3) <span class="hljs-string">"three"</span>
+4) <span class="hljs-string">"four"</span>
+5) <span class="hljs-string">"five"</span>
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt;
+192.168.130.133:6379&gt; lset list1 6 magedu
+(error) ERR index out of range
+192.168.130.133:6379&gt;
+
+
+使用 lpop 和 rpop 分别从左侧或者右侧删除一个元素，并将这个元素的值返回：
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; lrange list1 0 6
+1) <span class="hljs-string">"one"</span>
+2) <span class="hljs-string">"two"</span>
+3) <span class="hljs-string">"three"</span>
+4) <span class="hljs-string">"four"</span>
+5) <span class="hljs-string">"five"</span>
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; lpop list1
+<span class="hljs-string">"one"</span>
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; rpop list1
+<span class="hljs-string">"five"</span>
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; lrange list1 0 6
+1) <span class="hljs-string">"two"</span>
+2) <span class="hljs-string">"three"</span>
+3) <span class="hljs-string">"four"</span>
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt;
+
+
+
+4. <span class="hljs-built_in">set</span> 数据结构
+<span class="hljs-built_in">set</span> 数据结构可以存储多个不重复的数据元素， 使用 sadd 命令创建或者添加数据至指定的 <span class="hljs-built_in">set</span> 中，使用
+smembers 返回 <span class="hljs-built_in">set</span> 中的所有元素，使用 sismember 判断指定元素是否在指定的 <span class="hljs-built_in">set</span> 里
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; sadd set1 one
+(<span class="hljs-built_in">integer</span>) 1
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; sadd set1 two
+(<span class="hljs-built_in">integer</span>) 1
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; sadd set1 three
+(<span class="hljs-built_in">integer</span>) 1
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; smembers set1
+1) <span class="hljs-string">"one"</span>
+2) <span class="hljs-string">"two"</span>
+3) <span class="hljs-string">"three"</span>
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt;
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; sismember set1 one
+(<span class="hljs-built_in">integer</span>) 1
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; sismember set1 ones
+(<span class="hljs-built_in">integer</span>) 0
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt;
+
+使用 srem 命令删除指定 <span class="hljs-built_in">set</span> 中的指定 元素：
+192.168.130.133:6379&gt; smembers set1
+1) <span class="hljs-string">"one"</span>
+2) <span class="hljs-string">"two"</span>
+3) <span class="hljs-string">"three"</span>
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; srem set1 one
+(<span class="hljs-built_in">integer</span>) 1
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; smembers set1
+1) <span class="hljs-string">"two"</span>
+2) <span class="hljs-string">"three"</span>
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt;
+
+使用 spop 命令删除一个 <span class="hljs-built_in">set</span> 中的元素，并返回该元素：
+192.168.130.133:6379&gt; sadd set1 one two three four five
+(<span class="hljs-built_in">integer</span>) 5
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; spop set1
+<span class="hljs-string">"one"</span>
+192.168.130.133:6379&gt; spop set1
+<span class="hljs-string">"three"</span>
+192.168.130.133:6379&gt; spop set1
+<span class="hljs-string">"four"</span>
+192.168.130.133:6379&gt; spop set1
+<span class="hljs-string">"five"</span>
+192.168.130.133:6379&gt; spop set1
+<span class="hljs-string">"two"</span>
+192.168.130.133:6379&gt;
+192.168.130.133:6379&gt; smembers set1
+(empty list or <span class="hljs-built_in">set</span>)
+192.168.130.133:6379&gt;
+
+
+redis 还支持 <span class="hljs-built_in">set</span> 运算， 根据已有的 <span class="hljs-built_in">set</span> 集合返回指定的数据，比如 sunion 会返回多个 <span class="hljs-built_in">set</span> 的并集：
+192.168.130.133:6379&gt; sadd set1 one two three
+(<span class="hljs-built_in">integer</span>) 3
+192.168.130.133:6379&gt; smembers set1
+1) <span class="hljs-string">"one"</span>
+2) <span class="hljs-string">"two"</span>
+3) <span class="hljs-string">"three"</span>
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; sadd set2 two four five
+(<span class="hljs-built_in">integer</span>) 3
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; smembers set2
+1) <span class="hljs-string">"five"</span>
+2) <span class="hljs-string">"four"</span>
+3) <span class="hljs-string">"two"</span>
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; sunion set1 set2
+1) <span class="hljs-string">"two"</span>
+2) <span class="hljs-string">"three"</span>
+3) <span class="hljs-string">"one"</span>
+4) <span class="hljs-string">"four"</span>
+5) <span class="hljs-string">"five"</span>
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt;
+
+返回交集：
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; smembers set1
+1) <span class="hljs-string">"one"</span>
+2) <span class="hljs-string">"two"</span>
+3) <span class="hljs-string">"three"</span>
+192.168.130.133:6379&gt; smembers set2
+1) <span class="hljs-string">"five"</span>
+2) <span class="hljs-string">"four"</span>
+3) <span class="hljs-string">"two"</span>
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; sinter set1 set2
+1) <span class="hljs-string">"two"</span>
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; 
+
+返回差集：
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; smembers set1
+1) <span class="hljs-string">"one"</span>
+2) <span class="hljs-string">"two"</span>
+3) <span class="hljs-string">"three"</span>
+192.168.130.133:6379&gt; smembers set2
+1) <span class="hljs-string">"five"</span>
+2) <span class="hljs-string">"four"</span>
+3) <span class="hljs-string">"two"</span>
+192.168.130.133:6379&gt;
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; sinter set1 set2
+1) <span class="hljs-string">"two"</span>
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; sdiff set1 set2
+1) <span class="hljs-string">"one"</span>
+2) <span class="hljs-string">"three"</span>
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt;
+
+
+
+5. 有序集合 sorted <span class="hljs-built_in">set</span>
+之前我们演示的 <span class="hljs-built_in">set</span> 集合是无顺序存储数据的， 使用 spop 时，也发现了这个问题。redis 中还提供了一个有序的集合 sorted <span class="hljs-built_in">set</span>，我们可以使用 zadd 创建和添加数据到一个有序的集合中，使用 zrange 可以显示所有元素，zcard 显示
+集合元素总个数，使用 zrank 返回指定元素的索引：
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; zadd set1 0 zero
+(<span class="hljs-built_in">integer</span>) 1
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; zadd set1 1 one
+(<span class="hljs-built_in">integer</span>) 1
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; zadd set1 2 two
+(<span class="hljs-built_in">integer</span>) 1
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; zrange set1 0 5
+1) <span class="hljs-string">"zero"</span>
+2) <span class="hljs-string">"one"</span>
+3) <span class="hljs-string">"two"</span>
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt;
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; zrange set1 0 5 withscores
+1) <span class="hljs-string">"zero"</span>
+2) <span class="hljs-string">"0"</span>
+3) <span class="hljs-string">"one"</span>
+4) <span class="hljs-string">"1"</span>
+5) <span class="hljs-string">"two"</span>
+6) <span class="hljs-string">"2"</span>
+192.168.130.133:6379&gt;
+192.168.130.133:6379&gt; zcard set1
+(<span class="hljs-built_in">integer</span>) 3
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt;
+192.168.130.133:6379&gt; zrank set1 one
+(<span class="hljs-built_in">integer</span>) 1
+192.168.130.133:6379&gt; zrank set1 zero
+(<span class="hljs-built_in">integer</span>) 0
+192.168.130.133:6379&gt; 
+
+
+
+6. redis 中还有一种 <span class="hljs-built_in">hash</span> 数据结构，将指定的 key-value 键值对存在特定的 <span class="hljs-built_in">hash</span> 中， 我们可以使用 hset 创建
+一个 <span class="hljs-built_in">hash</span> 数据结构，并在其中添加指定的数据, 使用 hget 获取指定的数据信息：
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; hset hset1 name magedu
+(<span class="hljs-built_in">integer</span>) 1
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; hget hset1 name
+<span class="hljs-string">"magedu"</span>
+192.168.130.133:6379&gt;
+
+
+还可以使用 hmset 和 hmget 同时创建多个数据，获取多个数据：
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; hmset hset1 name magedu age 18
+OK
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; hmget hset1 name age
+1) <span class="hljs-string">"magedu"</span>
+2) <span class="hljs-string">"18"</span>
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt;
+
+使用 hgetall 命令获取全部数据：
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; hgetall hset1
+1) <span class="hljs-string">"name"</span>
+2) <span class="hljs-string">"magedu"</span>
+3) <span class="hljs-string">"age"</span>
+4) <span class="hljs-string">"18"</span>
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt;
+
+使用 hdel 删除指定的数据：
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; hgetall hset1
+1) <span class="hljs-string">"name"</span>
+2) <span class="hljs-string">"magedu"</span>
+3) <span class="hljs-string">"age"</span>
+4) <span class="hljs-string">"18"</span>
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; hdel hset1 name
+(<span class="hljs-built_in">integer</span>) 1
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; hgetall hset1
+1) <span class="hljs-string">"age"</span>
+2) <span class="hljs-string">"18"</span>
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt;
+</div></code></pre>
+<h4 id="1225-redis-4014-%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97%E5%8A%9F%E8%83%BD">12.2.5 redis-4.0.14 消息队列功能</h4>
+<pre class="hljs"><code><div>1. 消息队列中的生成者和消费者模式
+我们可以使用 list 作为消息的存储队列，生成者从左侧 lpush 数据， 消费者从右侧 rpop 获取消费数据：
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; lpush channel1 milk
+(<span class="hljs-built_in">integer</span>) 1
+192.168.130.133:6379&gt; lpush channel1 bread
+(<span class="hljs-built_in">integer</span>) 2
+192.168.130.133:6379&gt; lpush channel1 vegetable
+(<span class="hljs-built_in">integer</span>) 3
+192.168.130.133:6379&gt; lpush channel1 nuts
+(<span class="hljs-built_in">integer</span>) 4
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; rpop channel1
+<span class="hljs-string">"milk"</span>
+192.168.130.133:6379&gt; rpop channel1
+<span class="hljs-string">"bread"</span>
+192.168.130.133:6379&gt; rpop channel1
+<span class="hljs-string">"vegetable"</span>
+192.168.130.133:6379&gt; rpop channel1
+<span class="hljs-string">"nuts"</span>
+192.168.130.133:6379&gt; rpop channel1
+(nil)
+192.168.130.133:6379&gt; 
+
+
+2. 消息发布和订阅模式
+消息发布者使用 publish 发布消息， 订阅者使用 subscribe 命令订阅指定消息队列，下面我们开启两个 redis
+连接到 192.168.130.133 的 redis 服务：
+首先一个客户端先订阅 channel2
+[root@node2 ~]<span class="hljs-comment"># </span>
+[root@node2 ~]<span class="hljs-comment"># redis-cli -h 192.168.130.133 -p 6379</span>
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; subscribe channel2
+Reading messages... (press Ctrl-C to quit)
+1) <span class="hljs-string">"subscribe"</span>
+2) <span class="hljs-string">"channel2"</span>
+3) (<span class="hljs-built_in">integer</span>) 1
+
+
+另一个客户端向 channel2 中发布消息：
+[root@node1 ~]<span class="hljs-comment"># redis-cli -h 192.168.130.133 -p 6379</span>
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; publish channel2 <span class="hljs-string">"hello Linux"</span>
+(<span class="hljs-built_in">integer</span>) 1
+192.168.130.133:6379&gt; publish channel2 <span class="hljs-string">"hello Python"</span>
+(<span class="hljs-built_in">integer</span>) 1
+192.168.130.133:6379&gt; publish channel2 <span class="hljs-string">"hello magedu"</span>
+(<span class="hljs-built_in">integer</span>) 1
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt;
+
+
+在第一个客户端中查看显示情况：
+[root@node2 ~]<span class="hljs-comment"># </span>
+[root@node2 ~]<span class="hljs-comment"># redis-cli -h 192.168.130.133 -p 6379</span>
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; subscribe channel2
+Reading messages... (press Ctrl-C to quit)
+1) <span class="hljs-string">"subscribe"</span>
+2) <span class="hljs-string">"channel2"</span>
+3) (<span class="hljs-built_in">integer</span>) 1
+1) <span class="hljs-string">"message"</span>
+2) <span class="hljs-string">"channel2"</span>
+3) <span class="hljs-string">"hello Linux"</span>
+1) <span class="hljs-string">"message"</span>
+2) <span class="hljs-string">"channel2"</span>
+3) <span class="hljs-string">"hello Python"</span>
+1) <span class="hljs-string">"message"</span>
+2) <span class="hljs-string">"channel2"</span>
+3) <span class="hljs-string">"hello magedu"</span>
+
+</div></code></pre>
+<h4 id="1226-redis-4014-%E5%85%B6%E4%BB%96%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4">12.2.6 redis-4.0.14 其他常用命令</h4>
+<pre class="hljs"><code><div>1. 使用 config 命令临时修改 redis 配置信息， 可以通过 配置文件实现永久修改
+下面我们演示一下使用 config 命令临时设置 redis 连接密码：
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; config get requirepass
+1) <span class="hljs-string">"requirepass"</span>
+2) <span class="hljs-string">""</span>
+192.168.130.133:6379&gt; config <span class="hljs-built_in">set</span> requirepass 123456
+OK
+192.168.130.133:6379&gt; config get requirepass
+(error) NOAUTH Authentication required.
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; auth 123456
+OK
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; config get requirepass
+1) <span class="hljs-string">"requirepass"</span>
+2) <span class="hljs-string">"123456"</span>
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt;
+
+
+
+2. 使用 info 命令查看 redis 状态信息：
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; info
+<span class="hljs-comment"># Server</span>
+redis_version:4.0.14
+redis_git_sha1:00000000
+redis_git_dirty:0
+redis_build_id:60334b18dda6887e
+redis_mode:standalone
+os:Linux 3.10.0-957.el7.x86_64 x86_64
+arch_bits:64
+multiplexing_api:epoll
+atomicvar_api:atomic-builtin
+gcc_version:4.8.5
+process_id:21862
+run_id:1994fb884cbe94121a6b4bb0086af4b337f4dfee
+tcp_port:6379
+uptime_in_seconds:77023
+uptime_in_days:0
+hz:10
+lru_clock:214341
+executable:/apps/redis/bin/redis-server
+config_file:/apps/redis/etc/redis.conf
+
+<span class="hljs-comment"># Clients</span>
+connected_clients:2
+client_longest_output_list:0
+client_biggest_input_buf:0
+blocked_clients:0
+
+<span class="hljs-comment"># Memory</span>
+used_memory:591464
+used_memory_human:577.60K
+used_memory_rss:2772992
+used_memory_rss_human:2.64M
+used_memory_peak:591464
+used_memory_peak_human:577.60K
+used_memory_peak_perc:100.12%
+used_memory_overhead:574904
+used_memory_startup:508144
+used_memory_dataset:16560
+used_memory_dataset_perc:19.88%
+total_system_memory:2076762112
+total_system_memory_human:1.93G
+used_memory_lua:37888
+used_memory_lua_human:37.00K
+maxmemory:0
+maxmemory_human:0B
+maxmemory_policy:noeviction
+mem_fragmentation_ratio:4.69
+mem_allocator:jemalloc-4.0.3
+active_defrag_running:0
+lazyfree_pending_objects:0
+
+<span class="hljs-comment"># Persistence</span>
+loading:0
+rdb_changes_since_last_save:0
+rdb_bgsave_in_progress:0
+rdb_last_save_time:1560493687
+rdb_last_bgsave_status:ok
+rdb_last_bgsave_time_sec:0
+rdb_current_bgsave_time_sec:-1
+rdb_last_cow_size:196608
+aof_enabled:0
+aof_rewrite_in_progress:0
+aof_rewrite_scheduled:0
+aof_last_rewrite_time_sec:-1
+aof_current_rewrite_time_sec:-1
+aof_last_bgrewrite_status:ok
+aof_last_write_status:ok
+aof_last_cow_size:0
+
+<span class="hljs-comment"># Stats</span>
+total_connections_received:6
+total_commands_processed:219
+instantaneous_ops_per_sec:0
+total_net_input_bytes:7485
+total_net_output_bytes:57342
+instantaneous_input_kbps:0.00
+instantaneous_output_kbps:0.00
+rejected_connections:0
+sync_full:0
+sync_partial_ok:0
+sync_partial_err:0
+expired_keys:2
+expired_stale_perc:0.00
+expired_time_cap_reached_count:0
+evicted_keys:0
+keyspace_hits:96
+keyspace_misses:13
+pubsub_channels:1
+pubsub_patterns:0
+latest_fork_usec:160
+migrate_cached_sockets:0
+slave_expires_tracked_keys:0
+active_defrag_hits:0
+active_defrag_misses:0
+active_defrag_key_hits:0
+active_defrag_key_misses:0
+
+<span class="hljs-comment"># Replication</span>
+role:master
+connected_slaves:0
+master_replid:bf11389216d17c38813b4d4d9945014e017f03c7
+master_replid2:0000000000000000000000000000000000000000
+master_repl_offset:0
+second_repl_offset:-1
+repl_backlog_active:0
+repl_backlog_size:1048576
+repl_backlog_first_byte_offset:0
+repl_backlog_histlen:0
+
+<span class="hljs-comment"># CPU</span>
+used_cpu_sys:30.40
+used_cpu_user:14.44
+used_cpu_sys_children:0.02
+used_cpu_user_children:0.01
+
+<span class="hljs-comment"># Cluster</span>
+cluster_enabled:0
+
+<span class="hljs-comment"># Keyspace</span>
+db0:keys=4,expires=0,avg_ttl=0
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt;
+
+
+3. 选择数据库，登录 redis 后，默认使用数据库 0， 配置文件中一共定义了 16 个数据，他们相互独立
+要想使用指定的数据库， 可以使用 select 命令选项，演示如下：
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; select 0
+OK
+192.168.130.133:6379&gt; <span class="hljs-built_in">set</span> name magedu
+OK
+192.168.130.133:6379&gt; get name 
+<span class="hljs-string">"magedu"</span>
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; select 1
+OK
+192.168.130.133:6379[1]&gt; get name
+(nil)
+192.168.130.133:6379[1]&gt; select 0
+OK
+192.168.130.133:6379&gt; get name
+<span class="hljs-string">"magedu"</span>
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt;
+
+
+4. 显示当前数据的所有key
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; keys *
+1) <span class="hljs-string">"age"</span>
+2) <span class="hljs-string">"list1"</span>
+3) <span class="hljs-string">"22"</span>
+4) <span class="hljs-string">"name"</span>
+5) <span class="hljs-string">"hset1"</span>
+192.168.130.133:6379&gt;
+
+
+5. 192.168.130.133:6379&gt; keys *
+1) <span class="hljs-string">"age"</span>
+2) <span class="hljs-string">"list1"</span>
+3) <span class="hljs-string">"name"</span>
+4) <span class="hljs-string">"hset1"</span>
+192.168.130.133:6379&gt;
+
+
+6. 手动触发 RDB 持久化
+192.168.130.133:6379&gt; bgsave
+Background saving started
+192.168.130.133:6379&gt; 
+
+在 redis 服务器端查看是否有rdb文件生成
+[root@node1 ~]<span class="hljs-comment"># </span>
+[root@node1 ~]<span class="hljs-comment"># cd /apps/redis/data/</span>
+[root@node1 data]<span class="hljs-comment"># ll</span>
+total 4
+-rw-r--r--. 1 redis redis 183 Jun 14 15:04 dump.rdb
+[root@node1 data]<span class="hljs-comment">#</span>
+
+
+7. 使用 dbsize 命令显示当前数据可 key 的总数
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; dbsize
+(<span class="hljs-built_in">integer</span>) 4
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt;
+
+
+8. 使用 flushdb 清空当前数据库所有数据
+192.168.130.133:6379&gt; dbsize
+(<span class="hljs-built_in">integer</span>) 4
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; flushdb
+OK
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; dbsize
+(<span class="hljs-built_in">integer</span>) 0
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt;
+
+9. 使用 flushall 情况全部数据的所有数据
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; flushall
+OK
+192.168.130.133:6379&gt;
+</div></code></pre>
+
+</body>
+</html>

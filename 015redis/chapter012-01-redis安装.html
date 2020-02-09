@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>chapter012-01-redis安装.md</title>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+
+<style>
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+body {
+	font-family: "Segoe WPC", "Segoe UI", "SFUIText-Light", "HelveticaNeue-Light", sans-serif, "Droid Sans Fallback";
+	font-size: 14px;
+	padding: 0 12px;
+	line-height: 22px;
+	word-wrap: break-word;
+}
+
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	font-family: sans-serif;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
+
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection .code-active-line:before,
+body.showEditorSelection .code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	color: #4080D0;
+	text-decoration: none;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+hr {
+	border: 0;
+	height: 2px;
+	border-bottom: 2px solid;
+}
+
+h1 {
+	padding-bottom: 0.3em;
+	line-height: 1.2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h1, h2, h3 {
+	font-weight: normal;
+}
+
+h1 code,
+h2 code,
+h3 code,
+h4 code,
+h5 code,
+h6 code {
+	font-size: inherit;
+	line-height: auto;
+}
+
+a:hover {
+	color: #4080D0;
+	text-decoration: underline;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table > thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+table > thead > tr > th,
+table > thead > tr > td,
+table > tbody > tr > th,
+table > tbody > tr > td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0 7px 0 5px;
+	padding: 0 16px 0 10px;
+	border-left: 5px solid;
+}
+
+code {
+	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
+	font-size: 14px;
+	line-height: 19px;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+.mac code {
+	font-size: 12px;
+	line-height: 18px;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+/** Theming */
+
+.vscode-light,
+.vscode-light pre code {
+	color: rgb(30, 30, 30);
+}
+
+.vscode-dark,
+.vscode-dark pre code {
+	color: #DDD;
+}
+
+.vscode-high-contrast,
+.vscode-high-contrast pre code {
+	color: white;
+}
+
+.vscode-light code {
+	color: #A31515;
+}
+
+.vscode-dark code {
+	color: #D7BA7D;
+}
+
+.vscode-light pre:not(.hljs),
+.vscode-light code > div {
+	background-color: rgba(220, 220, 220, 0.4);
+}
+
+.vscode-dark pre:not(.hljs),
+.vscode-dark code > div {
+	background-color: rgba(10, 10, 10, 0.4);
+}
+
+.vscode-high-contrast pre:not(.hljs),
+.vscode-high-contrast code > div {
+	background-color: rgb(0, 0, 0);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light table > thead > tr > th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark table > thead > tr > th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light hr,
+.vscode-light table > tbody > tr + tr > td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark hr,
+.vscode-dark table > tbody > tr + tr > td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+.vscode-light blockquote,
+.vscode-dark blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.vscode-high-contrast blockquote {
+	background: transparent;
+	border-color: #fff;
+}
+</style>
+
+<style>
+/* Tomorrow Theme */
+/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+	color: #8e908c;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+	color: #c82829;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+	color: #f5871f;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+	color: #eab700;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+	color: #718c00;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+	color: #4271ae;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+	color: #8959a8;
+}
+
+.hljs {
+	display: block;
+	overflow-x: auto;
+	color: #4d4d4c;
+	padding: 0.5em;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}
+</style>
+
+<style>
+/*
+ * Markdown PDF CSS
+ */
+
+ body {
+	font-family:  "Meiryo", "Segoe WPC", "Segoe UI", "SFUIText-Light", "HelveticaNeue-Light", sans-serif, "Droid Sans Fallback";
+}
+
+pre {
+	background-color: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
+}
+
+blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.emoji {
+	height: 1.4em;
+}
+
+/* for inline code */
+:not(pre):not(.hljs) > code {
+	color: #C9AE75; /* Change the old color so it seems less like an error */
+	font-size: inherit;
+}
+
+/* Page Break : use <div class="page"/> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
+
+</style>
+
+</head>
+<body>
+<h2 id="%E7%AC%AC%E5%8D%81%E4%BA%8C%E7%AB%A0-redis-%E7%BC%93%E5%AD%98%E6%9C%8D%E5%8A%A1">第十二章 Redis 缓存服务</h2>
+<h3 id="%E7%AC%AC%E4%B8%80%E8%8A%82-redis-%E5%9F%BA%E7%A1%80%E5%AE%89%E8%A3%85">第一节  Redis 基础安装</h3>
+<h4 id="1211-centos76-%E4%B8%AD-yum-%E5%AE%89%E8%A3%85-redis">12.1.1 CentOS7.6 中 yum 安装 redis</h4>
+<pre class="hljs"><code><div>1. 准备一台新安装的 CentOS7.6 服务器， 关闭selinux， 清空防火墙规则
+[root@localhost ~]<span class="hljs-comment"># setenforce 0</span>
+[root@localhost ~]<span class="hljs-comment"># </span>
+[root@localhost ~]<span class="hljs-comment"># </span>
+[root@localhost ~]<span class="hljs-comment"># cat /etc/selinux/config </span>
+
+<span class="hljs-comment"># This file controls the state of SELinux on the system.</span>
+<span class="hljs-comment"># SELINUX= can take one of these three values:</span>
+<span class="hljs-comment">#     enforcing - SELinux security policy is enforced.</span>
+<span class="hljs-comment">#     permissive - SELinux prints warnings instead of enforcing.</span>
+<span class="hljs-comment">#     disabled - No SELinux policy is loaded.</span>
+SELINUX=disabled
+<span class="hljs-comment"># SELINUXTYPE= can take one of three values:</span>
+<span class="hljs-comment">#     targeted - Targeted processes are protected,</span>
+<span class="hljs-comment">#     minimum - Modification of targeted policy. Only selected processes are protected. </span>
+<span class="hljs-comment">#     mls - Multi Level Security protection.</span>
+SELINUXTYPE=targeted 
+
+
+[root@localhost ~]<span class="hljs-comment"># </span>
+[root@localhost ~]<span class="hljs-comment"># </span>
+[root@localhost ~]<span class="hljs-comment"># yum remove firewalld -y </span>
+Loaded plugins: fastestmirror
+No Match <span class="hljs-keyword">for</span> argument: firewalld
+No Packages marked <span class="hljs-keyword">for</span> removal
+[root@localhost ~]<span class="hljs-comment"># </span>
+[root@localhost ~]<span class="hljs-comment">#</span>
+[root@localhost ~]<span class="hljs-comment"># iptables -vnL</span>
+Chain INPUT (policy ACCEPT 0 packets, 0 bytes)
+ pkts bytes target     prot opt <span class="hljs-keyword">in</span>     out     <span class="hljs-built_in">source</span>               destination         
+
+Chain FORWARD (policy ACCEPT 0 packets, 0 bytes)
+ pkts bytes target     prot opt <span class="hljs-keyword">in</span>     out     <span class="hljs-built_in">source</span>               destination         
+
+Chain OUTPUT (policy ACCEPT 0 packets, 0 bytes)
+ pkts bytes target     prot opt <span class="hljs-keyword">in</span>     out     <span class="hljs-built_in">source</span>               destination         
+[root@localhost ~]<span class="hljs-comment">#</span>
+
+
+2. 使用 yum 的 epel 源安装 redis
+[root@localhost ~]<span class="hljs-comment"># </span>
+[root@localhost ~]<span class="hljs-comment"># yum install epel-release -y </span>
+Loaded plugins: fastestmirror
+Loading mirror speeds from cached hostfile
+ * base: mirrors.neusoft.edu.cn
+ * epel: fedora.cs.nctu.edu.tw
+ * extras: mirrors.aliyun.com
+ * updates: mirrors.163.com
+Package epel-release-7-11.noarch already installed and latest version
+Nothing to <span class="hljs-keyword">do</span>
+[root@localhost ~]<span class="hljs-comment"># </span>
+[root@localhost ~]<span class="hljs-comment"># yum install redis -y</span>
+Loaded plugins: fastestmirror
+Loading mirror speeds from cached hostfile
+ * base: mirrors.neusoft.edu.cn
+ * epel: mirror01.idc.hinet.net
+ * extras: mirrors.aliyun.com
+ * updates: mirrors.163.com
+Resolving Dependencies
+--&gt; Running transaction check
+---&gt; Package redis.x86_64 0:3.2.12-2.el7 will be installed
+--&gt; Processing Dependency: libjemalloc.so.1()(64bit) <span class="hljs-keyword">for</span> package: redis-3.2.12-2.el7.x86_64
+--&gt; Running transaction check
+---&gt; Package jemalloc.x86_64 0:3.6.0-1.el7 will be installed
+--&gt; Finished Dependency Resolution
+
+Dependencies Resolved
+
+===========================================================================================================================
+ Package                      Arch                       Version                            Repository                Size
+===========================================================================================================================
+Installing:
+ redis                        x86_64                     3.2.12-2.el7                       epel                     544 k
+Installing <span class="hljs-keyword">for</span> dependencies:
+ jemalloc                     x86_64                     3.6.0-1.el7                        epel                     105 k
+
+Transaction Summary
+===========================================================================================================================
+Install  1 Package (+1 Dependent package)
+
+Total download size: 648 k
+Installed size: 1.7 M
+Downloading packages:
+warning: /var/cache/yum/x86_64/7/epel/packages/redis-3.2.12-2.el7.x86_64.rpm: Header V3 RSA/SHA256 Signature, key ID 352c64e5: NOKEY
+Public key <span class="hljs-keyword">for</span> redis-3.2.12-2.el7.x86_64.rpm is not installed
+(1/2): redis-3.2.12-2.el7.x86_64.rpm                                                                | 544 kB  00:00:00     
+(2/2): jemalloc-3.6.0-1.el7.x86_64.rpm                                                              | 105 kB  00:00:00     
+---------------------------------------------------------------------------------------------------------------------------
+Total                                                                                      1.1 MB/s | 648 kB  00:00:00     
+Retrieving key from file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7
+Importing GPG key 0x352C64E5:
+ Userid     : <span class="hljs-string">"Fedora EPEL (7) &lt;epel@fedoraproject.org&gt;"</span>
+ Fingerprint: 91e9 7d7c 4a5e 96f1 7f3e 888f 6a2f aea2 352c 64e5
+ Package    : epel-release-7-11.noarch (@extras)
+ From       : /etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7
+Running transaction check
+Running transaction <span class="hljs-built_in">test</span>
+Transaction <span class="hljs-built_in">test</span> succeeded
+Running transaction
+  Installing : jemalloc-3.6.0-1.el7.x86_64                                                                             1/2 
+  Installing : redis-3.2.12-2.el7.x86_64                                                                               2/2 
+  Verifying  : redis-3.2.12-2.el7.x86_64                                                                               1/2 
+  Verifying  : jemalloc-3.6.0-1.el7.x86_64                                                                             2/2 
+
+Installed:
+  redis.x86_64 0:3.2.12-2.el7                                                                                              
+
+Dependency Installed:
+  jemalloc.x86_64 0:3.6.0-1.el7                                                                                            
+
+Complete!
+[root@localhost ~]<span class="hljs-comment">#</span>
+[root@localhost ~]<span class="hljs-comment"># </span>
+[root@localhost ~]<span class="hljs-comment"># rpm -ql redis</span>
+/etc/logrotate.d/redis
+/etc/redis-sentinel.conf
+/etc/redis.conf
+/etc/systemd/system/redis-sentinel.service.d
+/etc/systemd/system/redis-sentinel.service.d/limit.conf
+/etc/systemd/system/redis.service.d
+/etc/systemd/system/redis.service.d/limit.conf
+/usr/bin/redis-benchmark
+/usr/bin/redis-check-aof
+/usr/bin/redis-check-rdb
+/usr/bin/redis-cli
+/usr/bin/redis-sentinel
+/usr/bin/redis-server
+/usr/lib/systemd/system/redis-sentinel.service
+/usr/lib/systemd/system/redis.service
+/usr/libexec/redis-shutdown
+/usr/share/doc/redis-3.2.12
+/usr/share/doc/redis-3.2.12/00-RELEASENOTES
+/usr/share/doc/redis-3.2.12/BUGS
+/usr/share/doc/redis-3.2.12/CONTRIBUTING
+/usr/share/doc/redis-3.2.12/MANIFESTO
+/usr/share/doc/redis-3.2.12/README.md
+/usr/share/licenses/redis-3.2.12
+/usr/share/licenses/redis-3.2.12/COPYING
+/usr/share/man/man1/redis-benchmark.1.gz
+/usr/share/man/man1/redis-check-aof.1.gz
+/usr/share/man/man1/redis-check-rdb.1.gz
+/usr/share/man/man1/redis-cli.1.gz
+/usr/share/man/man1/redis-sentinel.1.gz
+/usr/share/man/man1/redis-server.1.gz
+/usr/share/man/man5/redis-sentinel.conf.5.gz
+/usr/share/man/man5/redis.conf.5.gz
+/var/lib/redis
+/var/<span class="hljs-built_in">log</span>/redis
+/var/run/redis
+[root@localhost ~]<span class="hljs-comment">#</span>
+
+
+3. 安装后启动 redis 服务， 使用redis-cli 操作 redis ，进行简单测试
+[root@localhost ~]<span class="hljs-comment"># systemctl start redis</span>
+[root@localhost ~]<span class="hljs-comment"># </span>
+[root@localhost ~]<span class="hljs-comment"># </span>
+[root@localhost ~]<span class="hljs-comment"># ss -ntl</span>
+State       Recv-Q Send-Q                Local Address:Port                               Peer Address:Port              
+LISTEN      0      128                       127.0.0.1:6379                                          *:*                  
+LISTEN      0      128                               *:22                                            *:*                  
+LISTEN      0      100                       127.0.0.1:25                                            *:*                  
+LISTEN      0      128                              :::22                                           :::*                  
+LISTEN      0      100                             ::1:25                                           :::*                  
+[root@localhost ~]<span class="hljs-comment"># </span>
+[root@localhost ~]<span class="hljs-comment"># redis-cli </span>
+127.0.0.1:6379&gt; info
+<span class="hljs-comment"># Server</span>
+redis_version:3.2.12
+redis_git_sha1:00000000
+redis_git_dirty:0
+redis_build_id:7897e7d0e13773f
+redis_mode:standalone
+os:Linux 3.10.0-957.el7.x86_64 x86_64
+arch_bits:64
+multiplexing_api:epoll
+gcc_version:4.8.5
+process_id:7362
+run_id:becfc13e62074933eccc4db38b35623be37dec9d
+tcp_port:6379
+uptime_in_seconds:176
+uptime_in_days:0
+hz:10
+lru_clock:16753618
+executable:/usr/bin/redis-server
+config_file:/etc/redis.conf
+
+<span class="hljs-comment"># Clients</span>
+connected_clients:1
+client_longest_output_list:0
+client_biggest_input_buf:0
+blocked_clients:0
+
+<span class="hljs-comment"># Memory</span>
+used_memory:813552
+used_memory_human:794.48K
+used_memory_rss:5918720
+used_memory_rss_human:5.64M
+used_memory_peak:813552
+used_memory_peak_human:794.48K
+total_system_memory:2076762112
+total_system_memory_human:1.93G
+used_memory_lua:37888
+used_memory_lua_human:37.00K
+maxmemory:0
+maxmemory_human:0B
+maxmemory_policy:noeviction
+mem_fragmentation_ratio:7.28
+mem_allocator:jemalloc-3.6.0
+
+<span class="hljs-comment"># Persistence</span>
+loading:0
+rdb_changes_since_last_save:1
+rdb_bgsave_in_progress:0
+rdb_last_save_time:1560257314
+rdb_last_bgsave_status:ok
+rdb_last_bgsave_time_sec:-1
+rdb_current_bgsave_time_sec:-1
+aof_enabled:0
+aof_rewrite_in_progress:0
+aof_rewrite_scheduled:0
+aof_last_rewrite_time_sec:-1
+aof_current_rewrite_time_sec:-1
+aof_last_bgrewrite_status:ok
+aof_last_write_status:ok
+
+<span class="hljs-comment"># Stats</span>
+total_connections_received:2
+total_commands_processed:5
+instantaneous_ops_per_sec:0
+total_net_input_bytes:121
+total_net_output_bytes:19871
+instantaneous_input_kbps:0.00
+instantaneous_output_kbps:0.00
+rejected_connections:0
+sync_full:0
+sync_partial_ok:0
+sync_partial_err:0
+expired_keys:0
+evicted_keys:0
+keyspace_hits:0
+keyspace_misses:2
+pubsub_channels:0
+pubsub_patterns:0
+latest_fork_usec:0
+migrate_cached_sockets:0
+
+<span class="hljs-comment"># Replication</span>
+role:master
+connected_slaves:0
+master_repl_offset:0
+repl_backlog_active:0
+repl_backlog_size:1048576
+repl_backlog_first_byte_offset:0
+repl_backlog_histlen:0
+
+<span class="hljs-comment"># CPU</span>
+used_cpu_sys:0.18
+used_cpu_user:0.06
+used_cpu_sys_children:0.00
+used_cpu_user_children:0.00
+
+<span class="hljs-comment"># Cluster</span>
+cluster_enabled:0
+
+<span class="hljs-comment"># Keyspace</span>
+db0:keys=1,expires=0,avg_ttl=0
+127.0.0.1:6379&gt; 
+127.0.0.1:6379&gt;
+127.0.0.1:6379&gt; 
+127.0.0.1:6379&gt; get *
+(nil)
+127.0.0.1:6379&gt; <span class="hljs-built_in">set</span> foo bar
+OK
+127.0.0.1:6379&gt; 
+127.0.0.1:6379&gt; 
+127.0.0.1:6379&gt; get foo
+<span class="hljs-string">"bar"</span>
+127.0.0.1:6379&gt; 
+127.0.0.1:6379&gt; <span class="hljs-built_in">exit</span>
+[root@localhost ~]<span class="hljs-comment"># </span>
+[root@localhost ~]<span class="hljs-comment"># </span>
+[root@localhost ~]<span class="hljs-comment">#</span>
+</div></code></pre>
+<h4 id="1212-centos76-%E4%B8%AD%E7%BC%96%E8%AF%91%E5%AE%89%E8%A3%85-redis414-%E7%89%88%E6%9C%AC">12.1.2 CentOS7.6 中编译安装 redis4.14 版本</h4>
+<pre class="hljs"><code><div>1. 准备一台新安装的 CentOS7.6 服务器， 关闭selinux， 清空防火墙规则
+[root@localhost ~]<span class="hljs-comment"># setenforce 0</span>
+[root@localhost ~]<span class="hljs-comment"># </span>
+[root@localhost ~]<span class="hljs-comment"># </span>
+[root@localhost ~]<span class="hljs-comment"># cat /etc/selinux/config </span>
+
+<span class="hljs-comment"># This file controls the state of SELinux on the system.</span>
+<span class="hljs-comment"># SELINUX= can take one of these three values:</span>
+<span class="hljs-comment">#     enforcing - SELinux security policy is enforced.</span>
+<span class="hljs-comment">#     permissive - SELinux prints warnings instead of enforcing.</span>
+<span class="hljs-comment">#     disabled - No SELinux policy is loaded.</span>
+SELINUX=disabled
+<span class="hljs-comment"># SELINUXTYPE= can take one of three values:</span>
+<span class="hljs-comment">#     targeted - Targeted processes are protected,</span>
+<span class="hljs-comment">#     minimum - Modification of targeted policy. Only selected processes are protected. </span>
+<span class="hljs-comment">#     mls - Multi Level Security protection.</span>
+SELINUXTYPE=targeted 
+
+
+[root@localhost ~]<span class="hljs-comment"># </span>
+[root@localhost ~]<span class="hljs-comment"># </span>
+[root@localhost ~]<span class="hljs-comment"># yum remove firewalld -y </span>
+Loaded plugins: fastestmirror
+No Match <span class="hljs-keyword">for</span> argument: firewalld
+No Packages marked <span class="hljs-keyword">for</span> removal
+[root@localhost ~]<span class="hljs-comment"># </span>
+[root@localhost ~]<span class="hljs-comment">#</span>
+[root@localhost ~]<span class="hljs-comment"># iptables -vnL</span>
+Chain INPUT (policy ACCEPT 0 packets, 0 bytes)
+ pkts bytes target     prot opt <span class="hljs-keyword">in</span>     out     <span class="hljs-built_in">source</span>               destination         
+
+Chain FORWARD (policy ACCEPT 0 packets, 0 bytes)
+ pkts bytes target     prot opt <span class="hljs-keyword">in</span>     out     <span class="hljs-built_in">source</span>               destination         
+
+Chain OUTPUT (policy ACCEPT 0 packets, 0 bytes)
+ pkts bytes target     prot opt <span class="hljs-keyword">in</span>     out     <span class="hljs-built_in">source</span>               destination         
+[root@localhost ~]<span class="hljs-comment">#</span>
+
+
+
+2. 安装编译依赖的软件包
+[root@localhost ~]<span class="hljs-comment"># yum install epel-release gcc make wget -y</span>
+Loaded plugins: fastestmirror
+Loading mirror speeds from cached hostfile
+ * base: mirrors.neusoft.edu.cn
+ * epel: mirror01.idc.hinet.net
+ * extras: mirrors.aliyun.com
+ * updates: mirrors.163.com
+Package epel-release-7-11.noarch already installed and latest version
+Package gcc-4.8.5-36.el7_6.2.x86_64 already installed and latest version
+Package 1:make-3.82-23.el7.x86_64 already installed and latest version
+Package wget-1.14-18.el7_6.1.x86_64 already installed and latest version
+Nothing to <span class="hljs-keyword">do</span>
+[root@localhost ~]<span class="hljs-comment">#</span>
+[root@localhost ~]<span class="hljs-comment"># </span>
+[root@localhost ~]<span class="hljs-comment"># </span>
+
+
+
+3. 下载源码包redis4.0.14，解压后编译安装， 创建配置文件和启动脚本
+[root@localhost ~]<span class="hljs-comment"># wget http://download.redis.io/releases/redis-4.0.14.tar.gz</span>
+--2019-06-11 21:01:22--  http://download.redis.io/releases/redis-4.0.14.tar.gz
+Resolving download.redis.io (download.redis.io)... 109.74.203.151
+Connecting to download.redis.io (download.redis.io)|109.74.203.151|:80... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 1740967 (1.7M) [application/x-gzip]
+Saving to: ‘redis-4.0.14.tar.gz’
+
+100%[=================================================================================&gt;] 1,740,967   10.0KB/s   <span class="hljs-keyword">in</span> 2m 42s 
+
+2019-06-11 21:04:04 (10.5 KB/s) - ‘redis-4.0.14.tar.gz’ saved [1740967/1740967]
+
+[root@localhost ~]<span class="hljs-comment"># </span>
+[root@localhost ~]<span class="hljs-comment">#</span>
+[root@localhost ~]<span class="hljs-comment"># ll</span>
+total 1712
+-rw-------. 1 root root    1366 May  8 19:53 anaconda-ks.cfg
+-rw-r--r--. 1 root root 1740967 Mar 19 00:30 redis-4.0.14.tar.gz
+[root@localhost ~]<span class="hljs-comment">#</span>
+[root@localhost ~]<span class="hljs-comment">#</span>
+[root@localhost ~]<span class="hljs-comment"># </span>
+[root@localhost ~]<span class="hljs-comment"># tar xf redis-4.0.14.tar.gz </span>
+[root@localhost ~]<span class="hljs-comment"># </span>
+[root@localhost ~]<span class="hljs-comment"># ll</span>
+total 1712
+-rw-------. 1 root root    1366 May  8 19:53 anaconda-ks.cfg
+drwxrwxr-x. 6 root root    4096 Mar 19 00:23 redis-4.0.14
+-rw-r--r--. 1 root root 1740967 Mar 19 00:30 redis-4.0.14.tar.gz
+[root@localhost ~]<span class="hljs-comment"># </span>
+[root@localhost ~]<span class="hljs-comment">#</span>
+[root@localhost ~]<span class="hljs-comment"># cd redis-4.0.14</span>
+[root@localhost redis-4.0.14]<span class="hljs-comment"># </span>
+[root@localhost redis-4.0.14]<span class="hljs-comment"># </span>
+[root@localhost redis-4.0.14]<span class="hljs-comment"># make PREFIX=/apps/redis install</span>
+.
+.
+.省略部分编译输出信息.....
+.
+.
+   CC geohash_helper.o
+    CC childinfo.o
+    CC defrag.o
+    CC siphash.o
+    CC rax.o
+    LINK redis-server
+    INSTALL redis-sentinel
+    CC redis-cli.o
+    LINK redis-cli
+    CC redis-benchmark.o
+    LINK redis-benchmark
+    INSTALL redis-check-rdb
+    INSTALL redis-check-aof
+
+Hint: It is a good idea to run <span class="hljs-string">'make test'</span> ;)
+
+    INSTALL install
+    INSTALL install
+    INSTALL install
+    INSTALL install
+    INSTALL install
+make[1]: Leaving directory /root/redis-4.0.14/src
+[root@localhost redis-4.0.14]<span class="hljs-comment"># </span>
+[root@localhost redis-4.0.14]<span class="hljs-comment"># </span>
+[root@localhost redis-4.0.14]<span class="hljs-comment"># </span>
+[root@localhost redis-4.0.14]<span class="hljs-comment"># </span>
+[root@localhost redis-4.0.14]<span class="hljs-comment"># mkdir -pv /apps/redis/{etc,log}</span>
+mkdir: created directory ‘/apps/redis/etc’
+mkdir: created directory ‘/apps/redis/<span class="hljs-built_in">log</span>’
+[root@localhost redis-4.0.14]<span class="hljs-comment"># </span>
+[root@localhost redis-4.0.14]<span class="hljs-comment"># cp redis.conf /apps/redis/etc/</span>
+[root@localhost redis-4.0.14]<span class="hljs-comment"># sed -i 's@logfile ""@logfile "/apps/redis/log/redis.log"@' /apps/redis/etc/redis.conf</span>
+[root@localhost redis-4.0.14]<span class="hljs-comment"># </span>
+[root@localhost redis-4.0.14]<span class="hljs-comment"># cd</span>
+[root@localhost ~]<span class="hljs-comment"># </span>
+[root@localhost ~]<span class="hljs-comment"># vi /usr/lib/systemd/system/redis.service</span>
+[root@localhost ~]<span class="hljs-comment"># </span>
+[root@localhost ~]<span class="hljs-comment"># cat /usr/lib/systemd/system/redis.service</span>
+[Unit]
+Description=Redis persistent key-value database
+After=network.target
+After=network-online.target
+Wants=network-online.target
+[Service]
+ExecStart=/apps/redis/bin/redis-server /apps/redis/etc/redis.conf --supervised systemd
+ExecReload=/bin/<span class="hljs-built_in">kill</span> -s HUP <span class="hljs-variable">$MAINPID</span> 
+ExecStop=/bin/<span class="hljs-built_in">kill</span> -s QUIT <span class="hljs-variable">$MAINPID</span>
+Type=notify
+User=redis
+Group=redis
+RuntimeDirectory=redis
+RuntimeDirectoryMode=0755
+[Install]
+WantedBy=multi-user.target
+[root@localhost ~]<span class="hljs-comment">#  </span>
+[root@localhost ~]<span class="hljs-comment"># systemctl daemon-reload</span>
+[root@localhost ~]<span class="hljs-comment"># </span>
+[root@localhost ~]<span class="hljs-comment"># useradd -r redis -s /sbin/nologin </span>
+[root@localhost ~]<span class="hljs-comment"># </span>
+[root@localhost ~]<span class="hljs-comment"># chown -R redis.redis /apps/redis</span>
+[root@localhost ~]<span class="hljs-comment"># </span>
+
+
+
+
+4. 启动服务 
+[root@localhost ~]<span class="hljs-comment"># </span>
+[root@localhost ~]<span class="hljs-comment"># systemctl start redis</span>
+[root@localhost ~]<span class="hljs-comment"># </span>
+[root@localhost ~]<span class="hljs-comment"># ss -ntl</span>
+State       Recv-Q Send-Q                Local Address:Port                               Peer Address:Port              
+LISTEN      0      128                       127.0.0.1:6379                                          *:*                  
+LISTEN      0      128                               *:22                                            *:*                  
+LISTEN      0      100                       127.0.0.1:25                                            *:*                  
+LISTEN      0      128                              :::22                                           :::*                  
+LISTEN      0      100                             ::1:25                                           :::*                  
+[root@localhost ~]<span class="hljs-comment">#</span>
+[root@localhost ~]<span class="hljs-comment">#</span>
+[root@localhost ~]<span class="hljs-comment">#</span>
+[root@localhost ~]<span class="hljs-comment"># cat /apps/redis/log/redis.log </span>
+10820:C 11 Jun 21:58:03.772 <span class="hljs-string">'#'</span> oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
+10820:C 11 Jun 21:58:03.772 <span class="hljs-string">'#'</span> Redis version=4.0.14, bits=64, commit=00000000, modified=0, pid=10820, just started
+10820:C 11 Jun 21:58:03.772 <span class="hljs-string">'#'</span> Configuration loaded
+10820:C 11 Jun 21:58:03.772 * supervised by systemd, will signal readiness
+10820:M 11 Jun 21:58:03.773 * Increased maximum number of open files to 10032 (it was originally <span class="hljs-built_in">set</span> to 1024).
+                _._                                                  
+           _.-``__ <span class="hljs-string">''</span>-._                                             
+      _.-``    `.  `_.  <span class="hljs-string">''</span>-._           Redis 4.0.14 (00000000/0) 64 bit
+  .-`` .-```.  ```\/    _.,_ <span class="hljs-string">''</span>-._                                   
+ (    <span class="hljs-string">'      ,       .-`  | `,    )     Running in standalone mode
+ |`-._`-...-` __...-.``-._|'</span>` _.- |     Port: 6379
+ |    `-._   `._    /     _.-<span class="hljs-string">'    |     PID: 10820
+  `-._    `-._  `-./  _.-'</span>    _.-<span class="hljs-string">'                                   
+ |`-._`-._    `-.__.-'</span>    _.-<span class="hljs-string">'_.-'</span>|                                  
+ |    `-._`-._        _.-<span class="hljs-string">'_.-'</span>    |     http://redis.io        
+  `-._    `-._`-.__.-<span class="hljs-string">'_.-'</span>    _.-<span class="hljs-string">'                                   
+ |`-._`-._    `-.__.-'</span>    _.-<span class="hljs-string">'_.-'</span>|                                  
+ |    `-._`-._        _.-<span class="hljs-string">'_.-'</span>    |                                  
+  `-._    `-._`-.__.-<span class="hljs-string">'_.-'</span>    _.-<span class="hljs-string">'                                   
+      `-._    `-.__.-'</span>    _.-<span class="hljs-string">'                                       
+          `-._        _.-'</span>                                           
+              `-.__.-<span class="hljs-string">''</span>                                               
+
+10820:M 11 Jun 21:58:03.774 <span class="hljs-string">'#'</span> WARNING: The TCP backlog setting of 511 cannot be enforced because /proc/sys/net/core/somaxconn is <span class="hljs-built_in">set</span> to the lower value of 128.
+10820:M 11 Jun 21:58:03.774 <span class="hljs-string">'#'</span> Server initialized
+10820:M 11 Jun 21:58:03.774 <span class="hljs-string">'#'</span> WARNING overcommit_memory is <span class="hljs-built_in">set</span> to 0! Background save may fail under low memory condition. To fix this issue add <span class="hljs-string">'vm.overcommit_memory = 1'</span> to /etc/sysctl.conf and <span class="hljs-keyword">then</span> reboot or run the <span class="hljs-built_in">command</span> <span class="hljs-string">'sysctl vm.overcommit_memory=1'</span> <span class="hljs-keyword">for</span> this to take effect.
+10820:M 11 Jun 21:58:03.774 <span class="hljs-string">'#'</span> WARNING you have Transparent Huge Pages (THP) support enabled <span class="hljs-keyword">in</span> your kernel. This will create latency and memory usage issues with Redis. To fix this issue run the <span class="hljs-built_in">command</span> <span class="hljs-string">'echo never &gt; /sys/kernel/mm/transparent_hugepage/enabled'</span> as root, and add it to your /etc/rc.local <span class="hljs-keyword">in</span> order to retain the setting after a reboot. Redis must be restarted after THP is disabled.
+10820:M 11 Jun 21:58:03.774 <span class="hljs-string">'*'</span> Ready to accept connections
+[root@localhost ~]<span class="hljs-comment">#    </span>
+[root@localhost ~]<span class="hljs-comment"># </span>
+[root@localhost ~]<span class="hljs-comment"># </span>
+
+</div></code></pre>
+<pre class="hljs"><code><div>5. 启动成功后，发现日志中有提示警告，下面我们解决错误问题
+
+第一个警告提示： redis 设置了 TCP backlog 的值为 511， 但是 linux 内核中当前值为 128，达不到 redis 要求
+第二个警告提示： Linux 中内存申请方式需要重 0 修改为 1 ，确保 redis 可以申请更多的物理内容
+
+[root@localhost ~]<span class="hljs-comment"># vi /etc/sysctl.conf </span>
+[root@localhost ~]<span class="hljs-comment"># </span>
+[root@localhost ~]<span class="hljs-comment"># cat /etc/sysctl.conf </span>
+<span class="hljs-comment"># sysctl settings are defined through files in</span>
+<span class="hljs-comment"># /usr/lib/sysctl.d/, /run/sysctl.d/, and /etc/sysctl.d/.</span>
+<span class="hljs-comment">#</span>
+<span class="hljs-comment"># Vendors settings live in /usr/lib/sysctl.d/.</span>
+<span class="hljs-comment"># To override a whole file, create a new file with the same in</span>
+<span class="hljs-comment"># /etc/sysctl.d/ and put new settings there. To override</span>
+<span class="hljs-comment"># only specific settings, add a file with a lexically later</span>
+<span class="hljs-comment"># name in /etc/sysctl.d/ and put new settings there.</span>
+<span class="hljs-comment">#</span>
+<span class="hljs-comment"># For more information, see sysctl.conf(5) and sysctl.d(5).</span>
+net.core.somaxconn = 512
+vm.overcommit_memory = 1
+[root@localhost ~]<span class="hljs-comment"># </span>
+[root@localhost ~]<span class="hljs-comment"># sysctl -p</span>
+net.core.somaxconn = 512
+vm.overcommit_memory = 1
+[root@localhost ~]<span class="hljs-comment"># </span>
+[root@localhost ~]<span class="hljs-comment">#</span>
+
+
+第三个警告提示： 关闭 Linux 的 transparent hugepage 功能，根据警告提示操作即可：
+[root@localhost ~]<span class="hljs-comment"># </span>
+[root@localhost ~]<span class="hljs-comment"># echo never &gt; /sys/kernel/mm/transparent_hugepage/enabled</span>
+[root@localhost ~]<span class="hljs-comment"># </span>
+[root@localhost ~]<span class="hljs-comment"># </span>
+[root@localhost ~]<span class="hljs-comment"># echo 'echo never &gt; /sys/kernel/mm/transparent_hugepage/enabled' &gt;&gt; /etc/rc.local </span>
+[root@localhost ~]<span class="hljs-comment">#  </span>
+[root@localhost ~]<span class="hljs-comment"># chmod +x /etc/rc.local </span>
+[root@localhost ~]<span class="hljs-comment">#</span>
+
+
+
+处理完三个警告后，情况原来的 redis 日志，重启 redis ，警告信息不再提示：
+[root@localhost ~]<span class="hljs-comment"># </span>
+[root@localhost ~]<span class="hljs-comment"># rm -rf /apps/redis/log/redis.log </span>
+[root@localhost ~]<span class="hljs-comment"># </span>
+[root@localhost ~]<span class="hljs-comment"># systemctl restart redis</span>
+[root@localhost ~]<span class="hljs-comment"># </span>
+[root@localhost ~]<span class="hljs-comment"># cat /apps/redis/log/redis.log </span>
+18540:C 12 Jun 10:17:07.362 <span class="hljs-string">'#'</span> oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
+18540:C 12 Jun 10:17:07.362 <span class="hljs-string">'#'</span> Redis version=4.0.14, bits=64, commit=00000000, modified=0, pid=18540, just started
+18540:C 12 Jun 10:17:07.362 <span class="hljs-string">'#'</span> Configuration loaded
+18540:C 12 Jun 10:17:07.362 * supervised by systemd, will signal readiness
+18540:M 12 Jun 10:17:07.363 * Increased maximum number of open files to 10032 (it was originally <span class="hljs-built_in">set</span> to 1024).
+                _._                                                  
+           _.-``__ <span class="hljs-string">''</span>-._                                             
+      _.-``    `.  `_.  <span class="hljs-string">''</span>-._           Redis 4.0.14 (00000000/0) 64 bit
+  .-`` .-```.  ```\/    _.,_ <span class="hljs-string">''</span>-._                                   
+ (    <span class="hljs-string">'      ,       .-`  | `,    )     Running in standalone mode
+ |`-._`-...-` __...-.``-._|'</span>` _.- |     Port: 6379
+ |    `-._   `._    /     _.-<span class="hljs-string">'    |     PID: 18540
+  `-._    `-._  `-./  _.-'</span>    _.-<span class="hljs-string">'                                   
+ |`-._`-._    `-.__.-'</span>    _.-<span class="hljs-string">'_.-'</span>|                                  
+ |    `-._`-._        _.-<span class="hljs-string">'_.-'</span>    |     http://redis.io        
+  `-._    `-._`-.__.-<span class="hljs-string">'_.-'</span>    _.-<span class="hljs-string">'                                   
+ |`-._`-._    `-.__.-'</span>    _.-<span class="hljs-string">'_.-'</span>|                                  
+ |    `-._`-._        _.-<span class="hljs-string">'_.-'</span>    |                                  
+  `-._    `-._`-.__.-<span class="hljs-string">'_.-'</span>    _.-<span class="hljs-string">'                                   
+      `-._    `-.__.-'</span>    _.-<span class="hljs-string">'                                       
+          `-._        _.-'</span>                                           
+              `-.__.-<span class="hljs-string">''</span>                                               
+
+18540:M 12 Jun 10:17:07.366 <span class="hljs-string">'#'</span> Server initialized
+18540:M 12 Jun 10:17:07.366 * Ready to accept connections
+[root@localhost ~]<span class="hljs-comment"># </span>
+[root@localhost ~]<span class="hljs-comment"># </span>
+
+
+配置 reids 的 PATH 环境变量，使用 redis-cli 进行连接测试：
+[root@localhost ~]<span class="hljs-comment">#</span>
+[root@localhost ~]<span class="hljs-comment"># vi /etc/profile.d/redis.sh</span>
+[root@localhost ~]<span class="hljs-comment">#  </span>
+[root@localhost ~]<span class="hljs-comment"># cat /etc/profile.d/redis.sh </span>
+<span class="hljs-meta">#!/bin/bash</span>
+<span class="hljs-built_in">export</span> PATH=/apps/redis/bin:<span class="hljs-variable">$PATH</span>
+[root@localhost ~]<span class="hljs-comment"># </span>
+[root@localhost ~]<span class="hljs-comment">#</span>
+[root@localhost ~]<span class="hljs-comment"># source /etc/profile.d/redis.sh </span>
+[root@localhost ~]<span class="hljs-comment"># </span>
+[root@localhost ~]<span class="hljs-comment">#</span>
+[root@localhost ~]<span class="hljs-comment"># </span>
+[root@localhost ~]<span class="hljs-comment"># redis-cli </span>
+127.0.0.1:6379&gt; info
+<span class="hljs-comment"># Server</span>
+redis_version:4.0.14
+redis_git_sha1:00000000
+redis_git_dirty:0
+redis_build_id:60334b18dda6887e
+redis_mode:standalone
+os:Linux 3.10.0-957.el7.x86_64 x86_64
+arch_bits:64
+multiplexing_api:epoll
+atomicvar_api:atomic-builtin
+gcc_version:4.8.5
+process_id:18540
+run_id:7f2a96d50638c6e6e7536c325c457f11e0729003
+tcp_port:6379
+uptime_in_seconds:952
+uptime_in_days:0
+hz:10
+lru_clock:25691
+executable:/apps/redis/bin/redis-server
+config_file:/apps/redis/etc/redis.conf
+
+<span class="hljs-comment"># Clients</span>
+connected_clients:1
+client_longest_output_list:0
+client_biggest_input_buf:0
+blocked_clients:0
+
+<span class="hljs-comment"># Memory</span>
+used_memory:849536
+used_memory_human:829.62K
+used_memory_rss:2707456
+used_memory_rss_human:2.58M
+used_memory_peak:849536
+used_memory_peak_human:829.62K
+used_memory_peak_perc:100.12%
+used_memory_overhead:836310
+used_memory_startup:786672
+used_memory_dataset:13226
+used_memory_dataset_perc:21.04%
+total_system_memory:2076762112
+total_system_memory_human:1.93G
+used_memory_lua:37888
+used_memory_lua_human:37.00K
+maxmemory:0
+maxmemory_human:0B
+maxmemory_policy:noeviction
+mem_fragmentation_ratio:3.19
+mem_allocator:jemalloc-4.0.3
+active_defrag_running:0
+lazyfree_pending_objects:0
+
+<span class="hljs-comment"># Persistence</span>
+loading:0
+rdb_changes_since_last_save:0
+rdb_bgsave_in_progress:0
+rdb_last_save_time:1560305827
+rdb_last_bgsave_status:ok
+rdb_last_bgsave_time_sec:-1
+rdb_current_bgsave_time_sec:-1
+rdb_last_cow_size:0
+aof_enabled:0
+aof_rewrite_in_progress:0
+aof_rewrite_scheduled:0
+aof_last_rewrite_time_sec:-1
+aof_current_rewrite_time_sec:-1
+aof_last_bgrewrite_status:ok
+aof_last_write_status:ok
+aof_last_cow_size:0
+
+<span class="hljs-comment"># Stats</span>
+total_connections_received:1
+total_commands_processed:1
+instantaneous_ops_per_sec:0
+total_net_input_bytes:31
+total_net_output_bytes:10163
+instantaneous_input_kbps:0.00
+instantaneous_output_kbps:0.00
+rejected_connections:0
+sync_full:0
+sync_partial_ok:0
+sync_partial_err:0
+expired_keys:0
+expired_stale_perc:0.00
+expired_time_cap_reached_count:0
+evicted_keys:0
+keyspace_hits:0
+keyspace_misses:0
+pubsub_channels:0
+pubsub_patterns:0
+latest_fork_usec:0
+migrate_cached_sockets:0
+slave_expires_tracked_keys:0
+active_defrag_hits:0
+active_defrag_misses:0
+active_defrag_key_hits:0
+active_defrag_key_misses:0
+
+<span class="hljs-comment"># Replication</span>
+role:master
+connected_slaves:0
+master_replid:365aef4d8c22b4d4381e1b1702ca780673a05eab
+master_replid2:0000000000000000000000000000000000000000
+master_repl_offset:0
+second_repl_offset:-1
+repl_backlog_active:0
+repl_backlog_size:1048576
+repl_backlog_first_byte_offset:0
+repl_backlog_histlen:0
+
+<span class="hljs-comment"># CPU</span>
+used_cpu_sys:0.88
+used_cpu_user:0.46
+used_cpu_sys_children:0.00
+used_cpu_user_children:0.00
+
+<span class="hljs-comment"># Cluster</span>
+cluster_enabled:0
+
+<span class="hljs-comment"># Keyspace</span>
+127.0.0.1:6379&gt; 
+127.0.0.1:6379&gt; 
+127.0.0.1:6379&gt; <span class="hljs-built_in">set</span> foo bar
+OK
+127.0.0.1:6379&gt; 
+127.0.0.1:6379&gt; get foo
+<span class="hljs-string">"bar"</span>
+127.0.0.1:6379&gt; 
+127.0.0.1:6379&gt; <span class="hljs-built_in">exit</span>
+[root@localhost ~]<span class="hljs-comment"># </span>
+[root@localhost ~]<span class="hljs-comment"># </span>
+[root@localhost ~]<span class="hljs-comment">#</span>
+</div></code></pre>
+
+</body>
+</html>

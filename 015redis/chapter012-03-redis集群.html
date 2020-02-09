@@ -1,0 +1,2188 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>chapter012-03-redis集群.md</title>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+
+<style>
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+body {
+	font-family: "Segoe WPC", "Segoe UI", "SFUIText-Light", "HelveticaNeue-Light", sans-serif, "Droid Sans Fallback";
+	font-size: 14px;
+	padding: 0 12px;
+	line-height: 22px;
+	word-wrap: break-word;
+}
+
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	font-family: sans-serif;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
+
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection .code-active-line:before,
+body.showEditorSelection .code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	color: #4080D0;
+	text-decoration: none;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+hr {
+	border: 0;
+	height: 2px;
+	border-bottom: 2px solid;
+}
+
+h1 {
+	padding-bottom: 0.3em;
+	line-height: 1.2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h1, h2, h3 {
+	font-weight: normal;
+}
+
+h1 code,
+h2 code,
+h3 code,
+h4 code,
+h5 code,
+h6 code {
+	font-size: inherit;
+	line-height: auto;
+}
+
+a:hover {
+	color: #4080D0;
+	text-decoration: underline;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table > thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+table > thead > tr > th,
+table > thead > tr > td,
+table > tbody > tr > th,
+table > tbody > tr > td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0 7px 0 5px;
+	padding: 0 16px 0 10px;
+	border-left: 5px solid;
+}
+
+code {
+	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
+	font-size: 14px;
+	line-height: 19px;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+.mac code {
+	font-size: 12px;
+	line-height: 18px;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+/** Theming */
+
+.vscode-light,
+.vscode-light pre code {
+	color: rgb(30, 30, 30);
+}
+
+.vscode-dark,
+.vscode-dark pre code {
+	color: #DDD;
+}
+
+.vscode-high-contrast,
+.vscode-high-contrast pre code {
+	color: white;
+}
+
+.vscode-light code {
+	color: #A31515;
+}
+
+.vscode-dark code {
+	color: #D7BA7D;
+}
+
+.vscode-light pre:not(.hljs),
+.vscode-light code > div {
+	background-color: rgba(220, 220, 220, 0.4);
+}
+
+.vscode-dark pre:not(.hljs),
+.vscode-dark code > div {
+	background-color: rgba(10, 10, 10, 0.4);
+}
+
+.vscode-high-contrast pre:not(.hljs),
+.vscode-high-contrast code > div {
+	background-color: rgb(0, 0, 0);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light table > thead > tr > th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark table > thead > tr > th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light hr,
+.vscode-light table > tbody > tr + tr > td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark hr,
+.vscode-dark table > tbody > tr + tr > td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+.vscode-light blockquote,
+.vscode-dark blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.vscode-high-contrast blockquote {
+	background: transparent;
+	border-color: #fff;
+}
+</style>
+
+<style>
+/* Tomorrow Theme */
+/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+	color: #8e908c;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+	color: #c82829;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+	color: #f5871f;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+	color: #eab700;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+	color: #718c00;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+	color: #4271ae;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+	color: #8959a8;
+}
+
+.hljs {
+	display: block;
+	overflow-x: auto;
+	color: #4d4d4c;
+	padding: 0.5em;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}
+</style>
+
+<style>
+/*
+ * Markdown PDF CSS
+ */
+
+ body {
+	font-family:  "Meiryo", "Segoe WPC", "Segoe UI", "SFUIText-Light", "HelveticaNeue-Light", sans-serif, "Droid Sans Fallback";
+}
+
+pre {
+	background-color: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
+}
+
+blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.emoji {
+	height: 1.4em;
+}
+
+/* for inline code */
+:not(pre):not(.hljs) > code {
+	color: #C9AE75; /* Change the old color so it seems less like an error */
+	font-size: inherit;
+}
+
+/* Page Break : use <div class="page"/> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
+
+</style>
+
+</head>
+<body>
+<h2 id="%E7%AC%AC%E5%8D%81%E4%BA%8C%E7%AB%A0-redis-%E7%BC%93%E5%AD%98%E6%9C%8D%E5%8A%A1">第十二章 Redis 缓存服务</h2>
+<h3 id="%E7%AC%AC%E4%B8%89%E8%8A%82-redis-%E9%9B%86%E7%BE%A4">第三节  Redis 集群</h3>
+<h4 id="1231-centos76-%E4%B8%AD-%E5%AE%9E%E7%8E%B0-redis-%E4%B8%BB%E4%BB%8E%E6%9E%B6%E6%9E%84">12.3.1 CentOS7.6 中 实现 redis 主从架构</h4>
+<p>Redis 支持主从同步功能，以此来提供数据高可用性，下面我们使用两台 CentOS7.6 服务器，编译安装 redis4.0.14<br>
+进行主从功能配置：</p>
+<pre class="hljs"><code><div>1. 服务器配置
+
+操作系统        主机名          ip                    redis版本
+CentOS7.6      node1          192.168.130.133        4.0.14
+CentOS7.6      node2          192.168.130.134        4.0.14
+
+
+2. 启动 node1 服务器的 redis
+[root@node1 ~]<span class="hljs-comment"># getenforce </span>
+Permissive
+[root@node1 ~]<span class="hljs-comment"># </span>
+[root@node1 ~]<span class="hljs-comment"># iptables -vnL</span>
+Chain INPUT (policy ACCEPT 12993 packets, 934K bytes)
+ pkts bytes target     prot opt <span class="hljs-keyword">in</span>     out     <span class="hljs-built_in">source</span>               destination         
+
+Chain FORWARD (policy ACCEPT 0 packets, 0 bytes)
+ pkts bytes target     prot opt <span class="hljs-keyword">in</span>     out     <span class="hljs-built_in">source</span>               destination         
+
+Chain OUTPUT (policy ACCEPT 9189 packets, 3607K bytes)
+ pkts bytes target     prot opt <span class="hljs-keyword">in</span>     out     <span class="hljs-built_in">source</span>               destination         
+[root@node1 ~]<span class="hljs-comment"># </span>
+[root@node1 ~]<span class="hljs-comment"># </span>
+[root@node1 ~]<span class="hljs-comment"># systemctl start redis</span>
+[root@node1 ~]<span class="hljs-comment"># </span>
+[root@node1 ~]<span class="hljs-comment"># ss -ntl</span>
+State       Recv-Q Send-Q Local Address:Port                Peer Address:Port              
+LISTEN      0      511                *:6379                           *:*                  
+LISTEN      0      128                *:22                             *:*                  
+LISTEN      0      100        127.0.0.1:25                             *:*                  
+LISTEN      0      128               :::22                            :::*                  
+LISTEN      0      100              ::1:25                            :::*                  
+[root@node1 ~]<span class="hljs-comment"># </span>
+[root@node1 ~]<span class="hljs-comment"># </span>
+[root@node1 ~]<span class="hljs-comment"># redis-cli </span>
+127.0.0.1:6379&gt; <span class="hljs-built_in">set</span> name magedu
+OK
+127.0.0.1:6379&gt; 
+127.0.0.1:6379&gt; get name
+<span class="hljs-string">"magedu"</span>
+127.0.0.1:6379&gt;
+
+
+3. 启动 node2 服务器的 redis 
+[root@node2 ~]<span class="hljs-comment"># </span>
+[root@node2 ~]<span class="hljs-comment"># getenforce </span>
+Permissive
+[root@node2 ~]<span class="hljs-comment"># </span>
+[root@node2 ~]<span class="hljs-comment"># </span>
+[root@node2 ~]<span class="hljs-comment"># iptables -vnL</span>
+Chain INPUT (policy ACCEPT 13486 packets, 1024K bytes)
+ pkts bytes target     prot opt <span class="hljs-keyword">in</span>     out     <span class="hljs-built_in">source</span>               destination         
+
+Chain FORWARD (policy ACCEPT 0 packets, 0 bytes)
+ pkts bytes target     prot opt <span class="hljs-keyword">in</span>     out     <span class="hljs-built_in">source</span>               destination         
+
+Chain OUTPUT (policy ACCEPT 9922 packets, 963K bytes)
+ pkts bytes target     prot opt <span class="hljs-keyword">in</span>     out     <span class="hljs-built_in">source</span>               destination         
+[root@node2 ~]<span class="hljs-comment"># </span>
+[root@node2 ~]<span class="hljs-comment"># systemctl restart redis</span>
+[root@node2 ~]<span class="hljs-comment"># </span>
+[root@node2 ~]<span class="hljs-comment"># </span>
+[root@node2 ~]<span class="hljs-comment"># ss -ntl</span>
+State      Recv-Q Send-Q Local Address:Port                Peer Address:Port              
+LISTEN     0      128                *:6379                           *:*                  
+LISTEN     0      128                *:22                             *:*                  
+LISTEN     0      100        127.0.0.1:25                             *:*                  
+LISTEN     0      128               :::22                            :::*                  
+LISTEN     0      100              ::1:25                            :::*                  
+[root@node2 ~]<span class="hljs-comment"># </span>
+[root@node2 ~]<span class="hljs-comment"># redis-cli </span>
+127.0.0.1:6379&gt; 
+127.0.0.1:6379&gt;
+
+
+4. 下面我们配置 node1 的 redis 为主(master)， node2 的 redis 为从(slave):
+[root@node2 redis-4.0.14]<span class="hljs-comment"># redis-cli </span>
+127.0.0.1:6379&gt; slaveof 192.168.130.133 6379
+OK
+127.0.0.1:6379&gt; info Replication
+<span class="hljs-comment"># Replication</span>
+role:slave
+master_host:192.168.130.133
+master_port:6379
+master_link_status:up
+master_last_io_seconds_ago:1
+master_sync_in_progress:0
+slave_repl_offset:14
+slave_priority:100
+slave_read_only:1
+connected_slaves:0
+master_replid:edef40b178a70998e7953c53832a29f18ee35e59
+master_replid2:0000000000000000000000000000000000000000
+master_repl_offset:14
+second_repl_offset:-1
+repl_backlog_active:1
+repl_backlog_size:1048576
+repl_backlog_first_byte_offset:1
+repl_backlog_histlen:14
+127.0.0.1:6379&gt; get name
+<span class="hljs-string">"magedu"</span>
+127.0.0.1:6379&gt; 
+127.0.0.1:6379&gt;
+
+
+5. 刚才我们是通过 slaveof 命令实现的主从同步，为了重启从节点后主从关于依旧生效，我们需要修改配置文件
+[root@node2 ~]<span class="hljs-comment"># vi /apps/redis/etc/redis.conf</span>
+[root@node2 ~]<span class="hljs-comment"># cat /apps/redis/etc/redis.conf | grep slaveof</span>
+<span class="hljs-comment"># Master-Slave replication. Use slaveof to make a Redis instance a copy of</span>
+slaveof 192.168.130.133 6379
+[root@node2 ~]<span class="hljs-comment"># </span>
+[root@node2 ~]<span class="hljs-comment"># </span>
+[root@node2 ~]<span class="hljs-comment"># systemctl restart redis</span>
+
+在node1 中修改 name 的值为 linux
+
+登录 node2 的 redis 发现数据同步成
+[root@node2 ~]<span class="hljs-comment"># redis-cli</span>
+127.0.0.1:6379&gt; get name
+<span class="hljs-string">"linux"</span>
+127.0.0.1:6379&gt;
+
+
+6. 要想断开主从连接， 我们可以使用 slaveof no one 命令：
+127.0.0.1:6379&gt; 
+127.0.0.1:6379&gt; info Replication
+<span class="hljs-comment"># Replication</span>
+role:slave
+master_host:192.168.130.133
+master_port:6379
+master_link_status:up
+master_last_io_seconds_ago:5
+master_sync_in_progress:0
+slave_repl_offset:3228
+slave_priority:100
+slave_read_only:1
+connected_slaves:0
+master_replid:edef40b178a70998e7953c53832a29f18ee35e59
+master_replid2:0000000000000000000000000000000000000000
+master_repl_offset:3228
+second_repl_offset:-1
+repl_backlog_active:1
+repl_backlog_size:1048576
+repl_backlog_first_byte_offset:1249
+repl_backlog_histlen:1980
+127.0.0.1:6379&gt; 
+127.0.0.1:6379&gt; 
+127.0.0.1:6379&gt; 
+127.0.0.1:6379&gt; slaveof no one
+OK
+127.0.0.1:6379&gt; 
+127.0.0.1:6379&gt; info Replication
+<span class="hljs-comment"># Replication</span>
+role:master
+connected_slaves:0
+master_replid:f872b54e0a4943aca0c6d5c3e6bf513f62c49a4a
+master_replid2:edef40b178a70998e7953c53832a29f18ee35e59
+master_repl_offset:3298
+second_repl_offset:3299
+repl_backlog_active:1
+repl_backlog_size:1048576
+repl_backlog_first_byte_offset:1249
+repl_backlog_histlen:2050
+127.0.0.1:6379&gt; 
+127.0.0.1:6379&gt;
+</div></code></pre>
+<h4 id="1232-centos76-%E4%B8%AD-%E5%AE%9E%E7%8E%B0-redis-%E5%93%A8%E5%85%B5%E5%8A%9F%E8%83%BD">12.3.2 CentOS7.6 中 实现 redis 哨兵功能</h4>
+<p>上一小节中我们实现的 redis 的主从功能，但是当主节点宕机后需要人工手动切换从节点为主节点，redis 中默认<br>
+有一个 redis 集群自动监控选举主节点的服务 redis-sentinel。下面我们搭建一个一主量从的 redis 架构，同<br>
+时在每个 redis 服务器上启动 redis-sentinel，完成字段主节点切换。</p>
+<pre class="hljs"><code><div>1. 服务器配置
+
+操作系统        主机名          ip                    redis版本
+CentOS7.6      node1          192.168.130.132        4.0.14
+CentOS7.6      node2          192.168.130.133        4.0.14
+centOS7.6      node3          192.168.130.134        4.0.14
+
+
+
+2. 同上一小节的主从架构一样， 我们编译安装 redis ，配置 node1 为 redis 主节点
+[root@node1 ~]# 
+[root@node1 ~]# setenforce 0
+[root@node1 ~]# 
+[root@node1 ~]# getenforce 
+Permissive
+[root@node1 ~]# 
+[root@node1 ~]# iptables -vnL
+Chain INPUT (policy ACCEPT 0 packets, 0 bytes)
+ pkts bytes target     prot opt in     out     source               destination         
+
+Chain FORWARD (policy ACCEPT 0 packets, 0 bytes)
+ pkts bytes target     prot opt in     out     source               destination         
+
+Chain OUTPUT (policy ACCEPT 0 packets, 0 bytes)
+ pkts bytes target     prot opt in     out     source               destination         
+[root@node1 ~]# 
+
+编译安装注意事项： 
+2.1. redis 编译路径为 /app/redis
+2.2. redis 目录中创建 etc ，log ，data 三个文件夹
+2.3. redis 的配置文件中定义 
+                        bind *
+                        daemonize yes
+                        pidfile &quot;/apps/redis/redis_6379.pid&quot;
+                        logfile &quot;/apps/redis/log/redis.log&quot;
+                        dir &quot;/apps/redis/data&quot;
+                        masterauth &quot;123456&quot;
+                        requirepass &quot;123456&quot;
+
+2.4. redis 服务 systemcd 配置文件
+[root@node1 ~]# cat /usr/lib/systemd/system/redis.service 
+[Unit]
+Description=Redis persistent key-value database
+After=network.target
+After=network-online.target
+Wants=network-online.target
+[Service]
+ExecStart=/apps/redis/bin/redis-server /apps/redis/etc/redis.conf --supervised systemd
+ExecReload=/bin/kill -s HUP $MAINPID 
+ExecStop=/bin/kill -s QUIT $MAINPID
+Type=notify
+User=redis
+Group=redis
+RuntimeDirectory=redis
+RuntimeDirectoryMode=0755
+[Install]
+WantedBy=multi-user.target
+[root@node1 ~]# 
+[root@node1 ~]# 
+[root@node1 ~]#
+
+2.5 哨兵配置文件：
+[root@node1 ~]# 
+[root@node1 ~]# cat /apps/redis/etc/redis-sentinel.conf
+bind 192.168.130.132
+port 26379
+daemonize yes
+pidfile &quot;/apps/redis/redis-sentinel.pid&quot;
+logfile &quot;/apps/redis/log/sentinel_26379.log&quot;
+dir &quot;/apps/redis&quot;
+sentinel deny-scripts-reconfig yes
+sentinel monitor mymaster 192.168.130.132 6379 2
+sentinel auth-pass mymaster 123456
+
+[root@node1 ~]# 
+[root@node1 ~]# 
+[root@node1 ~]#
+
+2.6 哨兵服务 systemd 配置文件
+[root@node1 ~]# 
+[root@node1 ~]# cat /usr/lib/systemd/system/redis-sentinel.service 
+[Unit]
+Description=Redis Sentinel
+After=network.target
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+ExecStart=/apps/redis/bin/redis-sentinel /apps/redis/etc/redis-sentinel.conf --supervised systemd
+#ExecStop=/usr/libexec/redis-shutdown redis-sentinel
+ExecStop=/bin/kill -s QUIT $MAINPID
+Type=notify
+User=redis
+Group=redis
+RuntimeDirectory=redis
+RuntimeDirectoryMode=0755
+
+[Install]
+WantedBy=multi-user.target
+
+2.7 启动 redis 服务
+[root@node1 ~]# 
+[root@node1 ~]#
+[root@node1 ~]# 
+[root@node1 ~]# systemctl start redis
+[root@node1 ~]# 
+[root@node1 ~]# ss -ntl
+State       Recv-Q Send-Q Local Address:Port                Peer Address:Port              
+LISTEN      0      128                *:6379                           *:*                  
+LISTEN      0      128                *:22                             *:*                  
+LISTEN      0      100        127.0.0.1:25                             *:*                  
+LISTEN      0      128               :::22                            :::*                  
+LISTEN      0      100              ::1:25                            :::*                  
+[root@node1 ~]# 
+[root@node1 ~]#
+
+
+
+
+3. 配置 node2 为 node1 的 slave
+[root@node2 ~]# 
+[root@node2 ~]# getenforce 
+Permissive
+[root@node2 ~]# 
+[root@node2 ~]# iptables -vnL
+Chain INPUT (policy ACCEPT 26781 packets, 1992K bytes)
+ pkts bytes target     prot opt in     out     source               destination         
+
+Chain FORWARD (policy ACCEPT 0 packets, 0 bytes)
+ pkts bytes target     prot opt in     out     source               destination         
+
+Chain OUTPUT (policy ACCEPT 20871 packets, 8687K bytes)
+ pkts bytes target     prot opt in     out     source               destination         
+[root@node2 ~]# 
+[root@node2 ~]# 
+
+3.1 node2 和 node1 中 redis 编译安装方式一样，配置文件也都一样
+3.2 node2 的哨兵配置文件中 bind 192.168.130.133 和 node1 的不一样
+
+3.3 启动 redis
+[root@node2 ~]# systemctl start redis
+[root@node2 ~]# 
+[root@node2 ~]# ss -ntl
+State      Recv-Q Send-Q Local Address:Port                Peer Address:Port              
+LISTEN     0      511                *:6379                           *:*                  
+LISTEN     0      128                *:22                             *:*                  
+LISTEN     0      100        127.0.0.1:25                             *:*                  
+LISTEN     0      128               :::22                            :::*                  
+LISTEN     0      100              ::1:25                            :::*                  
+[root@node2 ~]# 
+[root@node2 ~]# redis-cli
+127.0.0.1:6379&gt; auth 123456
+OK
+127.0.0.1:6379&gt; slaveof 192.168.130.132 6379
+OK
+127.0.0.1:6379&gt;
+127.0.0.1:6379&gt; 
+127.0.0.1:6379&gt; info Replication
+# Replication
+role:slave
+master_host:192.168.130.132
+master_port:6379
+master_link_status:up
+master_last_io_seconds_ago:7
+master_sync_in_progress:0
+slave_repl_offset:196
+slave_priority:100
+slave_read_only:1
+connected_slaves:0
+master_replid:f7a08011eee0d2fc3c36039c9ef7fb1573204e59
+master_replid2:0000000000000000000000000000000000000000
+master_repl_offset:196
+second_repl_offset:-1
+repl_backlog_active:1
+repl_backlog_size:1048576
+repl_backlog_first_byte_offset:1
+repl_backlog_histlen:196
+127.0.0.1:6379&gt; 
+127.0.0.1:6379&gt;
+
+
+
+
+4. 配置 node3 为 node1 的 slave
+[root@node3 ~]#  
+[root@node3 ~]# getenforce 
+Permissive
+[root@node3 ~]# 
+[root@node3 ~]# 
+[root@node3 ~]# iptables -vnL
+Chain INPUT (policy ACCEPT 28621 packets, 2245K bytes)
+ pkts bytes target     prot opt in     out     source               destination         
+
+Chain FORWARD (policy ACCEPT 0 packets, 0 bytes)
+ pkts bytes target     prot opt in     out     source               destination         
+
+Chain OUTPUT (policy ACCEPT 23740 packets, 4286K bytes)
+ pkts bytes target     prot opt in     out     source               destination         
+[root@node3 ~]# 
+
+4.1 node2 和 node1 中 redis 编译安装方式一样，配置文件也都一样
+4.2 node2 的哨兵配置文件中 bind 192.168.130.134 和 node1 的不一样
+
+4.3 启动 redis
+[root@node3 ~]# 
+[root@node3 ~]# systemctl start redis
+[root@node3 ~]# 
+[root@node3 ~]# ss -ntl
+State      Recv-Q Send-Q Local Address:Port                Peer Address:Port              
+LISTEN     0      511                *:6379                           *:*                  
+LISTEN     0      128                *:22                             *:*                  
+LISTEN     0      100        127.0.0.1:25                             *:*                  
+LISTEN     0      128               :::22                            :::*                  
+LISTEN     0      100              ::1:25                            :::*                  
+[root@node3 ~]# 
+[root@node3 ~]#
+[root@node3 ~]# redis-cli
+127.0.0.1:6379&gt; auth 123456
+OK
+127.0.0.1:6379&gt; slaveof 192.168.130.132 6379
+OK
+127.0.0.1:6379&gt;
+127.0.0.1:6379&gt; info Replication
+# Replication
+role:slave
+master_host:192.168.130.132
+master_port:6379
+master_link_status:up
+master_last_io_seconds_ago:8
+master_sync_in_progress:0
+slave_repl_offset:756
+slave_priority:100
+slave_read_only:1
+connected_slaves:0
+master_replid:f7a08011eee0d2fc3c36039c9ef7fb1573204e59
+master_replid2:0000000000000000000000000000000000000000
+master_repl_offset:756
+second_repl_offset:-1
+repl_backlog_active:1
+repl_backlog_size:1048576
+repl_backlog_first_byte_offset:729
+repl_backlog_histlen:28
+127.0.0.1:6379&gt;
+127.0.0.1:6379&gt;
+127.0.0.1:6379&gt;
+
+
+
+
+5. 启动哨兵
+
+5.1 先启动 node1 的 哨兵
+[root@node1 ~]#
+[root@node1 ~]# systemctl start redis-sentinel
+[root@node1 ~]#
+
+5.2 启动完 node1 的 哨兵后，快速启动 node2 和 node3 的哨兵
+[root@node2 ~]#
+[root@node2 ~]# systemctl start redis-sentinel
+[root@node2 ~]#
+
+[root@node3 ~]#
+[root@node3 ~]# systemctl start redis-sentinel
+[root@node3 ~]#
+
+5.3 我们登陆 node1 的 redis
+[root@node1 ~]# redis-cli 
+127.0.0.1:6379&gt; auth 123456
+OK
+127.0.0.1:6379&gt;
+127.0.0.1:6379&gt; info Replication
+# Replication
+role:master
+connected_slaves:1
+slave0:ip=192.168.130.134,port=6379,state=online,offset=1405100,lag=1
+master_replid:8e0eecac74af535ddb194d8d4eddfb5d7f59f95e
+master_replid2:450669a02990226f7d3b11a70da1af7794648a88
+master_repl_offset:1405245
+second_repl_offset:1397337
+repl_backlog_active:1
+repl_backlog_size:1048576
+repl_backlog_first_byte_offset:356670
+repl_backlog_histlen:1048576
+127.0.0.1:6379&gt; info Replication
+# Replication
+role:master
+connected_slaves:2
+slave0:ip=192.168.130.134,port=6379,state=online,offset=1451527,lag=1
+slave1:ip=192.168.130.133,port=6379,state=online,offset=1451527,lag=2
+master_replid:8e0eecac74af535ddb194d8d4eddfb5d7f59f95e
+master_replid2:450669a02990226f7d3b11a70da1af7794648a88
+master_repl_offset:1451527
+second_repl_offset:1397337
+repl_backlog_active:1
+repl_backlog_size:1048576
+repl_backlog_first_byte_offset:402952
+repl_backlog_histlen:1048576
+127.0.0.1:6379&gt;
+
+发现node1 是主，node2 和 node3 是他的从
+
+
+
+6. 关闭 node1 的 redis 服务， 稍等然后查看 node2 和 node3 的状态：
+
+6.1 关闭 node1 的 redis 服务
+[root@node1 ~]#
+[root@node1 ~]# systemctl stop redis
+[root@node1 ~]#
+
+
+6.2 查看node2 状态
+[root@node2 ~]# redis-cli
+127.0.0.1:6379&gt; auth 123456
+OK
+127.0.0.1:6379&gt; info Replication
+# Replication
+role:master
+connected_slaves:1
+slave0:ip=192.168.130.134,port=6379,state=online,offset=1501047,lag=1
+master_replid:949f7f2669bc1a004d3f94aedc4fa0f803436f4a
+master_replid2:8e0eecac74af535ddb194d8d4eddfb5d7f59f95e
+master_repl_offset:1501047
+second_repl_offset:1490964
+repl_backlog_active:1
+repl_backlog_size:1048576
+repl_backlog_first_byte_offset:1405971
+repl_backlog_histlen:95077
+127.0.0.1:6379&gt;
+
+6.3 查看 node3 状态
+[root@node3 redis]# redis-cli
+127.0.0.1:6379&gt; auth 123456
+OK
+127.0.0.1:6379&gt; info Replication
+# Replication
+role:slave
+master_host:192.168.130.133
+master_port:6379
+master_link_status:up
+master_last_io_seconds_ago:1
+master_sync_in_progress:0
+slave_repl_offset:1541333
+slave_priority:100
+slave_read_only:1
+connected_slaves:0
+master_replid:949f7f2669bc1a004d3f94aedc4fa0f803436f4a
+master_replid2:8e0eecac74af535ddb194d8d4eddfb5d7f59f95e
+master_repl_offset:1541333
+second_repl_offset:1490964
+repl_backlog_active:1
+repl_backlog_size:1048576
+repl_backlog_first_byte_offset:492758
+repl_backlog_histlen:1048576
+127.0.0.1:6379&gt; 
+127.0.0.1:6379&gt;
+
+通过上面的观察， 我们发现 node2 被提升为主节点， node3 是 node2 的从节点
+
+
+
+
+7. 再次启动 node1 中的 redis 服务， 查看 node2 和 node3 的状态
+
+7.1 启动 node1 的 redis 服务
+[root@node1 ~]# 
+[root@node1 ~]# systemctl start redis
+[root@node1 ~]# 
+[root@node1 ~]# 
+[root@node1 ~]# redis-cli
+127.0.0.1:6379&gt; auth 123456
+OK
+127.0.0.1:6379&gt; 
+127.0.0.1:6379&gt; info Replication
+# Replication
+role:slave
+master_host:192.168.130.133
+master_port:6379
+master_link_status:up
+master_last_io_seconds_ago:0
+master_sync_in_progress:0
+slave_repl_offset:1567334
+slave_priority:100
+slave_read_only:0
+connected_slaves:0
+master_replid:949f7f2669bc1a004d3f94aedc4fa0f803436f4a
+master_replid2:0000000000000000000000000000000000000000
+master_repl_offset:1567334
+second_repl_offset:-1
+repl_backlog_active:1
+repl_backlog_size:1048576
+repl_backlog_first_byte_offset:1564833
+repl_backlog_histlen:2502
+127.0.0.1:6379&gt; 
+127.0.0.1:6379&gt; 
+
+
+7.2 查看 node2 的状态：
+[root@node2 ~]# 
+[root@node2 ~]# redis-cli
+127.0.0.1:6379&gt; auth 123456
+OK
+127.0.0.1:6379&gt; 
+127.0.0.1:6379&gt; info Replication
+# Replication
+role:master
+connected_slaves:2
+slave0:ip=192.168.130.134,port=6379,state=online,offset=1593747,lag=1
+slave1:ip=192.168.130.132,port=6379,state=online,offset=1593747,lag=1
+master_replid:949f7f2669bc1a004d3f94aedc4fa0f803436f4a
+master_replid2:8e0eecac74af535ddb194d8d4eddfb5d7f59f95e
+master_repl_offset:1593892
+second_repl_offset:1490964
+repl_backlog_active:1
+repl_backlog_size:1048576
+repl_backlog_first_byte_offset:1405971
+repl_backlog_histlen:187922
+127.0.0.1:6379&gt; 
+127.0.0.1:6379&gt;
+
+
+7.3 查看 node3 的状态
+[root@node3 redis]# 
+[root@node3 redis]# redis-cli
+127.0.0.1:6379&gt; auth 123456
+OK
+127.0.0.1:6379&gt; info Replication
+# Replication
+role:slave
+master_host:192.168.130.133
+master_port:6379
+master_link_status:up
+master_last_io_seconds_ago:0
+master_sync_in_progress:0
+slave_repl_offset:1586455
+slave_priority:100
+slave_read_only:1
+connected_slaves:0
+master_replid:949f7f2669bc1a004d3f94aedc4fa0f803436f4a
+master_replid2:8e0eecac74af535ddb194d8d4eddfb5d7f59f95e
+master_repl_offset:1586455
+second_repl_offset:1490964
+repl_backlog_active:1
+repl_backlog_size:1048576
+repl_backlog_first_byte_offset:537880
+repl_backlog_histlen:1048576
+127.0.0.1:6379&gt; 
+127.0.0.1:6379&gt; 
+127.0.0.1:6379&gt; 
+
+上图的演示过程发现 node1 重启后加入集群，作为 node2 的从节点
+
+
+8. 哨兵实现主从切换时根据配置文件实现的， 切换后他会修改 哨兵自己 和 redis 的配置文件，不需要人工处理配置文件的修改操作。
+</div></code></pre>
+<h4 id="1233-centos76-%E4%B8%AD%E5%AE%9E%E7%8E%B0-redis-cluster-%E9%9B%86%E7%BE%A4%E6%90%AD%E5%BB%BA">12.3.3 CentOS7.6 中实现 redis cluster 集群搭建</h4>
+<p>  上一小节中我们完成了 redis 哨兵机制，实现了 redis 高可用和主节点自动切换功能。随着对 redis 并发和使用<br>
+频率的增长，哨兵机制已经满足不了我们的要求。redis 除了哨兵外，还支持 cluster 功能。 cluster 为无中心，分布<br>
+式 sharding，高可用技术架构。下面我们搭建一个 6 台服务器的 redis cluster 集群。</p>
+<pre class="hljs"><code><div>
+1. 服务器配置
+
+操作系统        主机名          ip                    redis版本
+CentOS7.6      node1          192.168.130.132        4.0.14
+CentOS7.6      node2          192.168.130.133        4.0.14
+CentOS7.6      node3          192.168.130.134        4.0.14
+CentOS7.6      node4          192.168.130.135        4.0.14
+CentOS7.6      node5          192.168.130.136        4.0.14
+CentOS7.6      node6          192.168.130.137        4.0.14
+
+
+
+2. 分别在每台服务器上进行编译安装 redis 4.0.14， 如果服务器环境相同，也可以直接拷贝编译后的 redis 文件夹，每台服务器应当
+关闭 selinux ，清空防火墙规则，创建好 redis 用户。下面我们在 node1 中进行操作：
+
+[root@node1 ~]<span class="hljs-comment"># getenforce </span>
+Disabled
+[root@node1 ~]<span class="hljs-comment"># </span>
+[root@node1 ~]<span class="hljs-comment"># iptables -vnL</span>
+Chain INPUT (policy ACCEPT 0 packets, 0 bytes)
+ pkts bytes target     prot opt <span class="hljs-keyword">in</span>     out     <span class="hljs-built_in">source</span>               destination         
+
+Chain FORWARD (policy ACCEPT 0 packets, 0 bytes)
+ pkts bytes target     prot opt <span class="hljs-keyword">in</span>     out     <span class="hljs-built_in">source</span>               destination         
+
+Chain OUTPUT (policy ACCEPT 0 packets, 0 bytes)
+ pkts bytes target     prot opt <span class="hljs-keyword">in</span>     out     <span class="hljs-built_in">source</span>               destination         
+[root@node1 ~]<span class="hljs-comment"># </span>
+[root@node1 ~]<span class="hljs-comment">#  </span>
+[root@node1 ~]<span class="hljs-comment"># useradd -r redis -s /sbin/nologin </span>
+[root@node1 ~]<span class="hljs-comment"># </span>
+[root@node1 ~]<span class="hljs-comment">#</span>
+
+
+3. 由于本次试验的 redis 服务器比较多，所以我在 node1 节点上编译安装一遍 redis 后直接将编译好的 redis 目录和配置文件拷贝
+   到其他 redis 集群中:
+
+3.1 redis 服务管理配置文件
+[root@node1 ~]<span class="hljs-comment"># cat /usr/lib/systemd/system/redis.service </span>
+[Unit]
+Description=Redis persistent key-value database
+After=network.target
+After=network-online.target
+Wants=network-online.target
+[Service]
+ExecStart=/apps/redis/bin/redis-server /apps/redis/etc/redis.conf --supervised systemd
+ExecReload=/bin/<span class="hljs-built_in">kill</span> -s HUP <span class="hljs-variable">$MAINPID</span> 
+ExecStop=/bin/<span class="hljs-built_in">kill</span> -s QUIT <span class="hljs-variable">$MAINPID</span>
+Type=notify
+User=redis
+Group=redis
+RuntimeDirectory=redis
+RuntimeDirectoryMode=0755
+[Install]
+WantedBy=multi-user.target
+[root@node1 ~]<span class="hljs-comment"># </span>
+[root@node1 ~]<span class="hljs-comment">#</span>
+
+3.2 redis 配置文件：
+redis 配置文件比较大，这里我们在源码包中提供的配置文件基础上进行修改：
+
+3.2.1 配置 redis 服务的监听地址配置， 这里一定要写具体的 ip 地址， 不能写 * 号，否则后期启动集群时一直处于等待状态。
+<span class="hljs-built_in">bind</span> 192.168.130.132
+
+3.2.2 配置为服务后台运行
+daemonize yes
+
+3.2.3 配置 redis 服务的pid文件路径
+pidfile /apps/redis/run/redis_6379.pid
+
+3.2.4 配置 redis 服务的 <span class="hljs-built_in">log</span> 文件日志
+logfile <span class="hljs-string">"/apps/redis/log/redis6379.log"</span>
+
+3.2.5 配置 redis 服务持久化数据的路径
+dir /apps/redis/data
+
+3.2.6 配置 master 的访问密码
+masterauth 123456
+
+3.2.7 配置 redis 登录密码
+requirepass 123456
+
+3.2.8 配置 启动 redis 集群功能
+cluster-enabled yes
+
+3.2.9 配置 redis 集群文件名称，这个文件集群启动后会自动生成
+cluster-config-file nodes-6379.conf
+
+我将配置文件修改后，删除所有的注释选项，最终配置文件内容如下：
+[root@node1 ~]<span class="hljs-comment"># cd /apps/redis/etc/</span>
+[root@node1 etc]<span class="hljs-comment"># </span>
+[root@node1 etc]<span class="hljs-comment">#</span>
+[root@node1 etc]<span class="hljs-comment"># cat redis.conf</span>
+<span class="hljs-built_in">bind</span> 192.168.130.132
+protected-mode yes
+port 6379
+tcp-backlog 511
+timeout 0
+tcp-keepalive 300
+daemonize yes
+supervised no
+pidfile /apps/redis/run/redis_6379.pid
+loglevel notice
+logfile <span class="hljs-string">"/apps/redis/log/redis6379.log"</span>
+databases 16
+always-show-logo yes
+save 900 1
+save 300 10
+save 60 10000
+stop-writes-on-bgsave-error yes
+rdbcompression yes
+rdbchecksum yes
+dbfilename dump.rdb
+dir /apps/redis/data/
+masterauth 123456
+slave-serve-stale-data yes
+slave-read-only yes
+repl-diskless-sync no
+repl-diskless-sync-delay 5
+repl-disable-tcp-nodelay no
+slave-priority 100
+requirepass 123456
+lazyfree-lazy-eviction no
+lazyfree-lazy-expire no
+lazyfree-lazy-server-del no
+slave-lazy-flush no
+appendonly no
+appendfilename <span class="hljs-string">"appendonly.aof"</span>
+appendfsync everysec
+no-appendfsync-on-rewrite no
+auto-aof-rewrite-percentage 100
+auto-aof-rewrite-min-size 64mb
+aof-load-truncated yes
+aof-use-rdb-preamble no
+lua-time-limit 5000
+cluster-enabled yes
+cluster-config-file nodes-6379.conf
+slowlog-log-slower-than 10000
+slowlog-max-len 128
+latency-monitor-threshold 0
+notify-keyspace-events <span class="hljs-string">""</span>
+<span class="hljs-built_in">hash</span>-max-ziplist-entries 512
+<span class="hljs-built_in">hash</span>-max-ziplist-value 64
+list-max-ziplist-size -2
+list-compress-depth 0
+<span class="hljs-built_in">set</span>-max-intset-entries 512
+zset-max-ziplist-entries 128
+zset-max-ziplist-value 64
+hll-sparse-max-bytes 3000
+activerehashing yes
+client-output-buffer-limit normal 0 0 0
+client-output-buffer-limit slave 256mb 64mb 60
+client-output-buffer-limit pubsub 32mb 8mb 60
+hz 10
+aof-rewrite-incremental-fsync yes
+[root@node1 etc]<span class="hljs-comment"># </span>
+[root@node1 etc]<span class="hljs-comment"># </span>
+[root@node1 etc]<span class="hljs-comment"># cd</span>
+[root@node1 ~]<span class="hljs-comment"># </span>
+[root@node1 ~]<span class="hljs-comment">#</span>
+
+
+4. 查看 redis 目录结构，修改文件属主和属组
+[root@node1 ~]<span class="hljs-comment"># tree /apps/redis/</span>
+/apps/redis/
+├── bin
+│   ├── redis-benchmark
+│   ├── redis-check-aof
+│   ├── redis-check-rdb
+│   ├── redis-cli
+│   ├── redis-sentinel -&gt; redis-server
+│   └── redis-server
+├── data
+├── etc
+│   └── redis.conf
+├── <span class="hljs-built_in">log</span>
+└── run
+
+5 directories, 7 files
+[root@node1 ~]<span class="hljs-comment">#</span>
+[root@node1 ~]<span class="hljs-comment"># chown -R redis.redis /apps/redis</span>
+[root@node1 ~]<span class="hljs-comment">#</span>
+
+
+5. 将 redis 文件夹和 服务启动脚本分别复制到 node2 到 node6 中
+[root@node1 ~]<span class="hljs-comment"># scp -rp /apps 192.168.130.133:/apps</span>
+root@192.168.130.133 s password: 
+redis-server                                                                  100% 5642KB  53.2MB/s   00:00    
+redis-benchmark                                                               100% 2395KB  57.4MB/s   00:00    
+redis-cli                                                                     100% 2557KB  55.9MB/s   00:00    
+redis-check-rdb                                                               100% 5642KB  59.0MB/s   00:00    
+redis-check-aof                                                               100% 5642KB  62.1MB/s   00:00    
+redis-sentinel                                                                100% 5642KB  67.7MB/s   00:00    
+redis.conf                                                                    100% 1464     1.4MB/s   00:00    
+[root@node1 ~]<span class="hljs-comment"># </span>
+[root@node1 ~]<span class="hljs-comment">#            </span>
+[root@node1 ~]<span class="hljs-comment"># scp -rp /usr/lib/systemd/system/redis.service 192.168.130.133:/usr/lib/systemd/system/</span>
+root@192.168.130.133 s password: 
+redis.service                                                                 100%  424   345.5KB/s   00:00    
+[root@node1 ~]<span class="hljs-comment">#</span>
+[root@node1 ~]<span class="hljs-comment"># </span>
+
+然后登陆到指定的节点中将 /apps/redis 内的文件属主属组修改成 redis 用户， 并将拷贝过来的 redis.conf 文件中 <span class="hljs-built_in">bind</span> 的地址修改
+为字节服务器的地址
+
+6. 分别启动 6 台服务器中的 redis
+[root@node1 ~]<span class="hljs-comment"># </span>
+[root@node1 ~]<span class="hljs-comment"># systemctl start redis</span>
+[root@node1 ~]<span class="hljs-comment"># </span>
+[root@node1 ~]<span class="hljs-comment"># ss -ntl</span>
+State      Recv-Q Send-Q           Local Address:Port                          Peer Address:Port              
+LISTEN     0      128            192.168.130.132:6379                                     *:*                  
+LISTEN     0      128                          *:22                                       *:*                  
+LISTEN     0      100                  127.0.0.1:25                                       *:*                  
+LISTEN     0      128            192.168.130.132:16379                                    *:*                  
+LISTEN     0      128                         :::22                                      :::*                  
+LISTEN     0      100                        ::1:25                                      :::*                  
+[root@node1 ~]<span class="hljs-comment">#</span>
+
+
+7. 在 node1 服务器上编译安装 redis 集群管理工具
+[root@node1 ~]<span class="hljs-comment"># yum install gcc make zlib-devel readline-devel gdbm-devel wget -y</span>
+Loaded plugins: fastestmirror
+Loading mirror speeds from cached hostfile
+ * base: mirror.bit.edu.cn
+ * epel: mirrors.tuna.tsinghua.edu.cn
+ * extras: mirror.bit.edu.cn
+ * updates: mirrors.tuna.tsinghua.edu.cn
+Package gcc-4.8.5-36.el7_6.2.x86_64 already installed and latest version
+Package 1:make-3.82-23.el7.x86_64 already installed and latest version
+Package zlib-devel-1.2.7-18.el7.x86_64 already installed and latest version
+Package readline-devel-6.2-10.el7.x86_64 already installed and latest version
+Package gdbm-devel-1.10-8.el7.x86_64 already installed and latest version
+Package wget-1.14-18.el7_6.1.x86_64 already installed and latest version
+Nothing to <span class="hljs-keyword">do</span>
+[root@node1 ~]<span class="hljs-comment">#</span>
+[root@node1 ~]<span class="hljs-comment">#</span>
+[root@node1 ~]<span class="hljs-comment"># ll</span>
+total 17344
+-rw-------.  1 root root     1368 Apr 27 16:21 anaconda-ks.cfg
+drwxrwxr-x   6 root root      309 Mar 19 00:23 redis-4.0.14
+-rw-r--r--.  1 root root  1740967 Jun 14 18:14 redis-4.0.14.tar.gz
+-rw-r--r--   1 root root 15996436 Mar 15 07:57 ruby-2.5.5.tar.gz
+[root@node1 ~]<span class="hljs-comment">#</span>
+[root@node1 ~]<span class="hljs-comment"># tar xf ruby-2.5.5.tar.gz </span>
+[root@node1 ~]<span class="hljs-comment"># ll</span>
+total 17344
+-rw-------.  1 root root     1368 Apr 27 16:21 anaconda-ks.cfg
+drwxrwxr-x   6 root root      309 Mar 19 00:23 redis-4.0.14
+-rw-r--r--.  1 root root  1740967 Jun 14 18:14 redis-4.0.14.tar.gz
+drwxr-xr-x  25 1044 1044     8192 Mar 15 06:25 ruby-2.5.5
+-rw-r--r--   1 root root 15996436 Mar 15 07:57 ruby-2.5.5.tar.gz
+[root@node1 ~]<span class="hljs-comment"># </span>
+[root@node1 ~]<span class="hljs-comment"># cd ruby-2.5.5</span>
+[root@node1 ruby-2.5.5]<span class="hljs-comment">#</span>
+[root@node1 ruby-2.5.5]<span class="hljs-comment"># ./configure </span>
+.
+.
+. 省略部分编译配置信息....
+.
+.
+config.status: creating GNUmakefile
+config.status: creating Makefile
+config.status: creating ruby-2.5.pc
+---
+Configuration summary <span class="hljs-keyword">for</span> ruby version 2.5.5
+
+   * Installation prefix: /usr/<span class="hljs-built_in">local</span>
+   * <span class="hljs-built_in">exec</span> prefix:         <span class="hljs-variable">${prefix}</span>
+   * arch:                x86_64-linux
+   * site arch:           <span class="hljs-variable">${arch}</span>
+   * RUBY_BASE_NAME:      ruby
+   * ruby lib prefix:     <span class="hljs-variable">${libdir}</span>/<span class="hljs-variable">${RUBY_BASE_NAME}</span>
+   * site libraries path: <span class="hljs-variable">${rubylibprefix}</span>/<span class="hljs-variable">${sitearch}</span>
+   * vendor path:         <span class="hljs-variable">${rubylibprefix}</span>/vendor_ruby
+   * target OS:           linux
+   * compiler:            gcc
+   * with pthread:        yes
+   * <span class="hljs-built_in">enable</span> shared libs:  no
+   * dynamic library ext: so
+   * CFLAGS:              <span class="hljs-variable">${optflags}</span> <span class="hljs-variable">${debugflags}</span> <span class="hljs-variable">${warnflags}</span>
+   * LDFLAGS:             -L. -fstack-protector -rdynamic \
+                          -Wl,-<span class="hljs-built_in">export</span>-dynamic
+   * optflags:            -O3
+   * debugflags:          -ggdb3
+   * warnflags:           -Wall -Wextra -Wno-unused-parameter \
+                          -Wno-parentheses -Wno-long-long \
+                          -Wno-missing-field-initializers \
+                          -Wno-tautological-compare \
+                          -Wno-parentheses-equality \
+                          -Wno-constant-logical-operand -Wno-self-assign \
+                          -Wunused-variable -Wimplicit-int -Wpointer-arith \
+                          -Wwrite-strings -Wdeclaration-after-statement \
+                          -Wimplicit-function-declaration \
+                          -Wdeprecated-declarations \
+                          -Wno-packed-bitfield-compat \
+                          -Wsuggest-attribute=noreturn \
+                          -Wsuggest-attribute=format
+   * strip <span class="hljs-built_in">command</span>:       strip -S -x
+   * install doc:         yes
+   * man page <span class="hljs-built_in">type</span>:       doc
+
+---
+[root@node1 ruby-2.5.5]<span class="hljs-comment">#</span>
+[root@node1 ruby-2.5.5]<span class="hljs-comment">#</span>
+[root@node1 ruby-2.5.5]<span class="hljs-comment"># make -j 4 </span>
+.
+.
+.省略部分编译输出信息.....
+.
+.
+compiling ./enc/trans/utf8_mac.c
+linking transcoder utf8_mac.so
+compiling ./enc/trans/utf_16_32.c
+linking transcoder utf_16_32.so
+make[1]: Leaving directory /root/ruby-2.5.5
+making encs
+make[1]: Entering directory /root/ruby-2.5.5
+make[1]: Nothing to be <span class="hljs-keyword">done</span> <span class="hljs-keyword">for</span> encs.
+make[1]: Leaving directory /root/ruby-2.5.5
+Generating RDoc documentation
+Parsing sources...
+100% [871/871]  vsnprintf.c                                                                           
+
+Generating RI format into /root/ruby-2.5.5/.ext/rdoc...
+
+  Files:        871
+
+  Classes:     1324 ( 565 undocumented)
+  Modules:      286 ( 121 undocumented)
+  Constants:   2181 ( 555 undocumented)
+  Attributes:  1066 ( 251 undocumented)
+  Methods:    10080 (2161 undocumented)
+
+  Total:      14937 (3653 undocumented)
+   75.54% documented
+
+  Elapsed: 99.0s
+
+[root@node1 ruby-2.5.5]<span class="hljs-comment">#</span>
+[root@node1 ruby-2.5.5]<span class="hljs-comment">#</span>
+[root@node1 ruby-2.5.5]<span class="hljs-comment">#</span>
+.
+.
+.省略部分编译安装输出信息....
+.
+.
+                                    stringio 0.0.1
+                                    strscan 1.0.0
+                                    zlib 1.0.0
+installing bundled gems:            /usr/<span class="hljs-built_in">local</span>/lib/ruby/gems/2.5.0 (build_info, cache, doc, extensions, gems, specifications)
+                                    minitest 5.10.3
+                                    rake 12.3.0
+                                    xmlrpc 0.3.0
+                                    did_you_mean 1.2.0
+                                    net-telnet 0.1.1
+                                    power_assert 1.1.1
+                                    <span class="hljs-built_in">test</span>-unit 3.2.7
+installing rdoc:                    /usr/<span class="hljs-built_in">local</span>/share/ri/2.5.0/system
+installing capi-docs:               /usr/<span class="hljs-built_in">local</span>/share/doc/ruby
+[root@node1 ruby-2.5.5]<span class="hljs-comment"># </span>
+[root@node1 ruby-2.5.5]<span class="hljs-comment"># </span>
+[root@node1 ruby-2.5.5]<span class="hljs-comment"># gem install redis</span>
+[root@node1 ruby-2.5.5]<span class="hljs-comment">#</span>
+
+修改一下配置文件，只需将密码修改为 redis 的密码即可
+[root@node1 redis-4.0.14]<span class="hljs-comment"># vi /usr/local/lib/ruby/gems/2.5.0/gems/redis-4.1.2/lib/redis/client.rb</span>
+[root@node1 redis-4.0.14]<span class="hljs-comment"># cat /usr/local/lib/ruby/gems/2.5.0/gems/redis-4.1.2/lib/redis/client.rb | grep ":password "</span>
+      :password =&gt; 123456,
+[root@node1 redis-4.0.14]<span class="hljs-comment">#</span>
+
+
+8. 使用 redis 集群管理工具启动 redis 集群, create 代表创建集群， replicas 代表每个redis 主节点有几个从节点，最后添加所有的 redis 服务
+地址， 提示输入时，输入 yes 即可
+[root@node1 ~]<span class="hljs-comment"># ./redis-4.0.14/src/redis-trib.rb create --replicas 1 192.168.130.132:6379 192.168.130.133:6379 192.168.130.134:6379 192.168.130.135:6379 192.168.130.136:6379 192.168.130.137:6379</span>
+&gt;&gt;&gt; Creating cluster
+&gt;&gt;&gt; Performing <span class="hljs-built_in">hash</span> slots allocation on 6 nodes...
+Using 3 masters:
+192.168.130.132:6379
+192.168.130.133:6379
+192.168.130.134:6379
+Adding replica 192.168.130.136:6379 to 192.168.130.132:6379
+Adding replica 192.168.130.137:6379 to 192.168.130.133:6379
+Adding replica 192.168.130.135:6379 to 192.168.130.134:6379
+M: 70c8a72161b43872c64d2eac83f30a7339e2ab4e 192.168.130.132:6379
+   slots:0-5460 (5461 slots) master
+M: d706c30afe9482e62b4ba83475eebd8ed99a83db 192.168.130.133:6379
+   slots:5461-10922 (5462 slots) master
+M: 27d19d7940567af5822fa44cafa82c2d6443bb9a 192.168.130.134:6379
+   slots:10923-16383 (5461 slots) master
+S: a85e5ae7cfdf57d487d33210b55e7c8c5625e49e 192.168.130.135:6379
+   replicates 27d19d7940567af5822fa44cafa82c2d6443bb9a
+S: a2ccb3e8bd3df5e19f950177de03197389e0ff42 192.168.130.136:6379
+   replicates 70c8a72161b43872c64d2eac83f30a7339e2ab4e
+S: 6c49605108f82d7db6b53c9d5bbde60d48a994b8 192.168.130.137:6379
+   replicates d706c30afe9482e62b4ba83475eebd8ed99a83db
+Can I <span class="hljs-built_in">set</span> the above configuration? (<span class="hljs-built_in">type</span> <span class="hljs-string">'yes'</span> to accept): yes
+&gt;&gt;&gt; Nodes configuration updated
+&gt;&gt;&gt; Assign a different config epoch to each node
+&gt;&gt;&gt; Sending CLUSTER MEET messages to join the cluster
+Waiting <span class="hljs-keyword">for</span> the cluster to join.....
+&gt;&gt;&gt; Performing Cluster Check (using node 192.168.130.132:6379)
+M: 70c8a72161b43872c64d2eac83f30a7339e2ab4e 192.168.130.132:6379
+   slots:0-5460 (5461 slots) master
+   1 additional replica(s)
+S: 6c49605108f82d7db6b53c9d5bbde60d48a994b8 192.168.130.137:6379
+   slots: (0 slots) slave
+   replicates d706c30afe9482e62b4ba83475eebd8ed99a83db
+S: a2ccb3e8bd3df5e19f950177de03197389e0ff42 192.168.130.136:6379
+   slots: (0 slots) slave
+   replicates 70c8a72161b43872c64d2eac83f30a7339e2ab4e
+M: 27d19d7940567af5822fa44cafa82c2d6443bb9a 192.168.130.134:6379
+   slots:10923-16383 (5461 slots) master
+   1 additional replica(s)
+S: a85e5ae7cfdf57d487d33210b55e7c8c5625e49e 192.168.130.135:6379
+   slots: (0 slots) slave
+   replicates 27d19d7940567af5822fa44cafa82c2d6443bb9a
+M: d706c30afe9482e62b4ba83475eebd8ed99a83db 192.168.130.133:6379
+   slots:5461-10922 (5462 slots) master
+   1 additional replica(s)
+[OK] All nodes agree about slots configuration.
+&gt;&gt;&gt; Check <span class="hljs-keyword">for</span> open slots...
+&gt;&gt;&gt; Check slots coverage...
+[OK] All 16384 slots covered.
+[root@node1 ~]<span class="hljs-comment"># </span>
+[root@node1 ~]<span class="hljs-comment"># </span>
+[root@node1 ~]<span class="hljs-comment">#</span>
+
+上面成功启动集群，三主三从， 下面我们登录 redis 查看一下状态：
+[root@node1 ~]<span class="hljs-comment"># </span>
+[root@node1 ~]<span class="hljs-comment"># redis-cli -h 192.168.130.132</span>
+192.168.130.132:6379&gt; auth 123456
+OK
+192.168.130.132:6379&gt; 
+192.168.130.132:6379&gt;
+192.168.130.132:6379&gt; 
+192.168.130.132:6379&gt; info Replication 
+<span class="hljs-comment"># Replication</span>
+role:master
+connected_slaves:1
+slave0:ip=192.168.130.136,port=6379,state=online,offset=560,lag=0
+master_replid:719f2b004377d8cd2616eb65f1fd255db2740b9b
+master_replid2:0000000000000000000000000000000000000000
+master_repl_offset:560
+second_repl_offset:-1
+repl_backlog_active:1
+repl_backlog_size:1048576
+repl_backlog_first_byte_offset:1
+repl_backlog_histlen:560
+192.168.130.132:6379&gt; 
+192.168.130.132:6379&gt; 
+192.168.130.132:6379&gt; 
+192.168.130.132:6379&gt; 
+192.168.130.132:6379&gt; info Cluster
+<span class="hljs-comment"># Cluster</span>
+cluster_enabled:1
+192.168.130.132:6379&gt; 
+192.168.130.132:6379&gt;
+
+9. 测试 redis 集群中主从节点是否具备自动切换功能
+通过 node1 中 redis 的 info 信息我们发现， node5 是 node1 的 slave ，现在我们停止 node1 中的 redis 服务，查看 node6 是否可以提升
+为主节点:
+[root@node1 ~]<span class="hljs-comment"># </span>
+[root@node1 ~]<span class="hljs-comment"># systemctl stop redis</span>
+[root@node1 ~]<span class="hljs-comment"># </span>
+[root@node1 ~]<span class="hljs-comment"># ss -ntl</span>
+State      Recv-Q Send-Q           Local Address:Port                          Peer Address:Port              
+LISTEN     0      128                          *:22                                       *:*                  
+LISTEN     0      100                  127.0.0.1:25                                       *:*                  
+LISTEN     0      128                         :::22                                      :::*                  
+LISTEN     0      100                        ::1:25                                      :::*                  
+[root@node1 ~]<span class="hljs-comment"># </span>
+[root@node1 ~]<span class="hljs-comment">#</span>
+[root@node1 ~]<span class="hljs-comment"># ./redis-4.0.14/src/redis-trib.rb check 192.168.130.132:6379</span>
+[ERR] Sorry, can not connect to node 192.168.130.132:6379
+[root@node1 ~]<span class="hljs-comment">#</span>
+[root@node1 ~]<span class="hljs-comment">#</span>
+[root@node1 ~]<span class="hljs-comment"># ./redis-4.0.14/src/redis-trib.rb check 192.168.130.133:6379</span>
+&gt;&gt;&gt; Performing Cluster Check (using node 192.168.130.133:6379)
+M: d706c30afe9482e62b4ba83475eebd8ed99a83db 192.168.130.133:6379
+   slots:5461-10922 (5462 slots) master
+   1 additional replica(s)
+M: a2ccb3e8bd3df5e19f950177de03197389e0ff42 192.168.130.136:6379
+   slots:0-5460 (5461 slots) master
+   0 additional replica(s)
+S: 6c49605108f82d7db6b53c9d5bbde60d48a994b8 192.168.130.137:6379
+   slots: (0 slots) slave
+   replicates d706c30afe9482e62b4ba83475eebd8ed99a83db
+S: a85e5ae7cfdf57d487d33210b55e7c8c5625e49e 192.168.130.135:6379
+   slots: (0 slots) slave
+   replicates 27d19d7940567af5822fa44cafa82c2d6443bb9a
+M: 27d19d7940567af5822fa44cafa82c2d6443bb9a 192.168.130.134:6379
+   slots:10923-16383 (5461 slots) master
+   1 additional replica(s)
+[OK] All nodes agree about slots configuration.
+&gt;&gt;&gt; Check <span class="hljs-keyword">for</span> open slots...
+&gt;&gt;&gt; Check slots coverage...
+[OK] All 16384 slots covered.
+[root@node1 ~]<span class="hljs-comment">#</span>
+[root@node1 ~]<span class="hljs-comment"># </span>
+[root@node1 ~]<span class="hljs-comment"># /apps/redis/bin/redis-cli -h 192.168.130.136</span>
+192.168.130.136:6379&gt; auth 123456
+OK
+192.168.130.136:6379&gt; info Replication
+<span class="hljs-comment"># Replication</span>
+role:master
+connected_slaves:0
+master_replid:acc1df86360d7ab63ba2ec08091160702030d5da
+master_replid2:719f2b004377d8cd2616eb65f1fd255db2740b9b
+master_repl_offset:868
+second_repl_offset:869
+repl_backlog_active:1
+repl_backlog_size:1048576
+repl_backlog_first_byte_offset:1
+repl_backlog_histlen:868
+192.168.130.136:6379&gt; 
+192.168.130.136:6379&gt;
+192.168.130.136:6379&gt; <span class="hljs-built_in">exit</span>
+[root@node1 ~]<span class="hljs-comment">#</span>
+[root@node1 ~]<span class="hljs-comment"># </span>
+[root@node1 ~]<span class="hljs-comment"># systemctl start redis</span>
+[root@node1 ~]<span class="hljs-comment"># </span>
+[root@node1 ~]<span class="hljs-comment"># </span>
+[root@node1 ~]<span class="hljs-comment"># ./redis-4.0.14/src/redis-trib.rb check 192.168.130.133:6379</span>
+&gt;&gt;&gt; Performing Cluster Check (using node 192.168.130.133:6379)
+M: d706c30afe9482e62b4ba83475eebd8ed99a83db 192.168.130.133:6379
+   slots:5461-10922 (5462 slots) master
+   1 additional replica(s)
+S: 70c8a72161b43872c64d2eac83f30a7339e2ab4e 192.168.130.132:6379
+   slots: (0 slots) slave
+   replicates a2ccb3e8bd3df5e19f950177de03197389e0ff42
+M: a2ccb3e8bd3df5e19f950177de03197389e0ff42 192.168.130.136:6379
+   slots:0-5460 (5461 slots) master
+   1 additional replica(s)
+S: 6c49605108f82d7db6b53c9d5bbde60d48a994b8 192.168.130.137:6379
+   slots: (0 slots) slave
+   replicates d706c30afe9482e62b4ba83475eebd8ed99a83db
+S: a85e5ae7cfdf57d487d33210b55e7c8c5625e49e 192.168.130.135:6379
+   slots: (0 slots) slave
+   replicates 27d19d7940567af5822fa44cafa82c2d6443bb9a
+M: 27d19d7940567af5822fa44cafa82c2d6443bb9a 192.168.130.134:6379
+   slots:10923-16383 (5461 slots) master
+   1 additional replica(s)
+[OK] All nodes agree about slots configuration.
+&gt;&gt;&gt; Check <span class="hljs-keyword">for</span> open slots...
+&gt;&gt;&gt; Check slots coverage...
+[OK] All 16384 slots covered.
+[root@node1 ~]<span class="hljs-comment">#</span>
+[root@node1 ~]<span class="hljs-comment">#</span>
+[root@node1 ~]<span class="hljs-comment"># redis-cli -h 192.168.130.132</span>
+192.168.130.132:6379&gt; auth 123456
+OK
+192.168.130.132:6379&gt; info Replication
+<span class="hljs-comment"># Replication</span>
+role:slave
+master_host:192.168.130.136
+master_port:6379
+master_link_status:up
+master_last_io_seconds_ago:7
+master_sync_in_progress:0
+slave_repl_offset:1218
+slave_priority:100
+slave_read_only:1
+connected_slaves:0
+master_replid:acc1df86360d7ab63ba2ec08091160702030d5da
+master_replid2:0000000000000000000000000000000000000000
+master_repl_offset:1218
+second_repl_offset:-1
+repl_backlog_active:1
+repl_backlog_size:1048576
+repl_backlog_first_byte_offset:869
+repl_backlog_histlen:350
+192.168.130.132:6379&gt; 
+192.168.130.132:6379&gt; <span class="hljs-built_in">exit</span>
+[root@node1 ~]<span class="hljs-comment"># </span>
+[root@node1 ~]<span class="hljs-comment">#</span>
+[root@node1 ~]<span class="hljs-comment">#</span>
+上面我们通过手动关闭主节点 node1 的 redis 服务，发现 node5 自动提升为主节点，使用集群管理工具的 check 命令查看当前集群状态，
+之后我们有重新启动 node1 的 redis 服务，发现 node1 成为 node5 的从几点。验证 cluster 集群的自动切换成功。
+
+
+
+10. 我们测试一下在 node2 的 redis 中进行数据写入操作
+[root@node1 ~]<span class="hljs-comment"># </span>
+[root@node1 ~]<span class="hljs-comment"># redis-cli -h 192.168.130.133</span>
+192.168.130.133:6379&gt; auth 123456
+OK
+192.168.130.133:6379&gt; get name 
+(nil)
+192.168.130.133:6379&gt; <span class="hljs-built_in">set</span> name magedu
+OK
+192.168.130.133:6379&gt; get name
+<span class="hljs-string">"magedu"</span>
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; <span class="hljs-built_in">set</span> add Beijing
+(error) MOVED 1943 192.168.130.136:6379
+192.168.130.133:6379&gt; 
+192.168.130.133:6379&gt; info Replication
+<span class="hljs-comment"># Replication</span>
+role:master
+connected_slaves:1
+slave0:ip=192.168.130.137,port=6379,state=online,offset=2872,lag=1
+master_replid:a5b74860bc4207bb32d65c3d8836b3dfe2d4458a
+master_replid2:0000000000000000000000000000000000000000
+master_repl_offset:2872
+second_repl_offset:-1
+repl_backlog_active:1
+repl_backlog_size:1048576
+repl_backlog_first_byte_offset:1
+repl_backlog_histlen:2872
+192.168.130.133:6379&gt;
+192.168.130.133:6379&gt; <span class="hljs-built_in">exit</span>
+[root@node1 ~]<span class="hljs-comment"># </span>
+[root@node1 ~]<span class="hljs-comment">#</span>
+
+上面的操作中 name 这个 key 被分配到了 node2 节点，可以写入，但是 add 这个 key 被分配到 node5 中，因此在 node2 中无法写入
+
+[root@node1 ~]<span class="hljs-comment"># redis-cli -h 192.168.130.136</span>
+192.168.130.136:6379&gt; auth 123456
+OK
+192.168.130.136:6379&gt; <span class="hljs-built_in">set</span> add Beijing
+OK
+192.168.130.136:6379&gt; 
+192.168.130.136:6379&gt; get name
+(error) MOVED 5798 192.168.130.133:6379
+192.168.130.136:6379&gt; 
+192.168.130.136:6379&gt; get add
+<span class="hljs-string">"Beijing"</span>
+192.168.130.136:6379&gt; 
+192.168.130.136:6379&gt; <span class="hljs-built_in">exit</span>
+[root@node1 ~]<span class="hljs-comment"># </span>
+[root@node1 ~]<span class="hljs-comment">#</span>
+[root@node1 ~]<span class="hljs-comment"># redis-cli -h 192.168.130.137</span>
+192.168.130.137:6379&gt; auth 123456
+OK
+192.168.130.137:6379&gt; get name
+(error) MOVED 5798 192.168.130.133:6379
+192.168.130.137:6379&gt; 
+192.168.130.137:6379&gt; <span class="hljs-built_in">exit</span>
+[root@node1 ~]<span class="hljs-comment">#</span>
+
+我们在 node2 中写入的数据在 node6 中无法访问，下面我们手动关闭 node2 的 redis 服务，然后再次访问 node6
+[root@node2 ~]<span class="hljs-comment">#</span>
+[root@node2 ~]<span class="hljs-comment"># systemctl stop redis</span>
+[root@node2 ~]<span class="hljs-comment">#</span>
+
+
+[root@node1 ~]<span class="hljs-comment"># redis-cli -h 192.168.130.137</span>
+192.168.130.137:6379&gt; auth 123456
+OK
+192.168.130.137:6379&gt; info Replication
+<span class="hljs-comment"># Replication</span>
+role:master
+connected_slaves:0
+master_replid:554b51ed0262382027e9357bddf3523793d115ea
+master_replid2:a5b74860bc4207bb32d65c3d8836b3dfe2d4458a
+master_repl_offset:3460
+second_repl_offset:3461
+repl_backlog_active:1
+repl_backlog_size:1048576
+repl_backlog_first_byte_offset:1
+repl_backlog_histlen:3460
+192.168.130.137:6379&gt; 
+192.168.130.137:6379&gt;
+192.168.130.137:6379&gt; get name
+<span class="hljs-string">"magedu"</span>
+(0.68s)
+192.168.130.137:6379&gt; <span class="hljs-built_in">exit</span>
+[root@node1 ~]<span class="hljs-comment"># </span>
+[root@node1 ~]<span class="hljs-comment">#</span>
+
+验证完成以后， 我们发现 cluster 的 从节点不具备访问功能，仅作为数据备份使用，下面我们重启 node2 
+[root@node2 ~]<span class="hljs-comment"># systemctl start redis</span>
+[root@node2 ~]<span class="hljs-comment"># ss -ntl</span>
+State      Recv-Q Send-Q           Local Address:Port                          Peer Address:Port              
+LISTEN     0      511            192.168.130.133:6379                                     *:*                  
+LISTEN     0      128                          *:22                                       *:*                  
+LISTEN     0      100                  127.0.0.1:25                                       *:*                  
+LISTEN     0      511            192.168.130.133:16379                                    *:*                  
+LISTEN     0      128                         :::22                                      :::*                  
+LISTEN     0      100                        ::1:25                                      :::*                  
+[root@node2 ~]<span class="hljs-comment"># </span>
+[root@node2 ~]<span class="hljs-comment">#</span>
+
+重启后查看集群状态：
+[root@node1 ~]<span class="hljs-comment"># </span>
+[root@node1 ~]<span class="hljs-comment"># ./redis-4.0.14/src/redis-trib.rb check 192.168.130.133:6379</span>
+&gt;&gt;&gt; Performing Cluster Check (using node 192.168.130.133:6379)
+S: d706c30afe9482e62b4ba83475eebd8ed99a83db 192.168.130.133:6379
+   slots: (0 slots) slave
+   replicates 6c49605108f82d7db6b53c9d5bbde60d48a994b8
+S: 70c8a72161b43872c64d2eac83f30a7339e2ab4e 192.168.130.132:6379
+   slots: (0 slots) slave
+   replicates a2ccb3e8bd3df5e19f950177de03197389e0ff42
+M: a2ccb3e8bd3df5e19f950177de03197389e0ff42 192.168.130.136:6379
+   slots:0-5460 (5461 slots) master
+   1 additional replica(s)
+M: 6c49605108f82d7db6b53c9d5bbde60d48a994b8 192.168.130.137:6379
+   slots:5461-10922 (5462 slots) master
+   1 additional replica(s)
+S: a85e5ae7cfdf57d487d33210b55e7c8c5625e49e 192.168.130.135:6379
+   slots: (0 slots) slave
+   replicates 27d19d7940567af5822fa44cafa82c2d6443bb9a
+M: 27d19d7940567af5822fa44cafa82c2d6443bb9a 192.168.130.134:6379
+   slots:10923-16383 (5461 slots) master
+   1 additional replica(s)
+[OK] All nodes agree about slots configuration.
+&gt;&gt;&gt; Check <span class="hljs-keyword">for</span> open slots...
+&gt;&gt;&gt; Check slots coverage...
+[OK] All 16384 slots covered.
+[root@node1 ~]<span class="hljs-comment"># </span>
+[root@node1 ~]<span class="hljs-comment">#</span>
+
+
+
+11. redis 集群扩容
+使用 redis 集群时，有的时候需要新增 redis 节点，提高性能，下面我们演示一下新增节点
+
+11.1 我们新准备两台 CentOS6.7 服务器，要求和之前的 6 台配置相同
+操作系统        主机名          ip                    redis版本
+CentOS7.6      node7          192.168.130.138        4.0.14
+CentOS7.6      node8          192.168.130.139        4.0.14
+
+11.2 我们启动 node7 和 node8 的 redis 服务
+
+node7：
+[root@node7 ~]<span class="hljs-comment"># </span>
+[root@node7 ~]<span class="hljs-comment"># systemctl start redis</span>
+[root@node7 ~]<span class="hljs-comment"># </span>
+[root@node7 ~]<span class="hljs-comment"># ss -ntl</span>
+State       Recv-Q Send-Q                                                 Local Address:Port                                                                Peer Address:Port              
+LISTEN      0      128                                                  192.168.130.138:6379                                                                           *:*                  
+LISTEN      0      128                                                                *:22                                                                             *:*                  
+LISTEN      0      100                                                        127.0.0.1:25                                                                             *:*                  
+LISTEN      0      128                                                  192.168.130.138:16379                                                                          *:*                  
+LISTEN      0      128                                                               :::22                                                                            :::*                  
+LISTEN      0      100                                                              ::1:25                                                                            :::*                  
+[root@node7 ~]<span class="hljs-comment"># </span>
+[root@node7 ~]<span class="hljs-comment"># </span>
+
+
+node8：
+[root@node8 ~]<span class="hljs-comment"># clear</span>
+[root@node8 ~]<span class="hljs-comment"># systemctl start redis</span>
+[root@node8 ~]<span class="hljs-comment"># </span>
+[root@node8 ~]<span class="hljs-comment"># ss -ntl</span>
+State       Recv-Q Send-Q                                                 Local Address:Port                                                                Peer Address:Port              
+LISTEN      0      128                                                  192.168.130.139:6379                                                                           *:*                  
+LISTEN      0      128                                                                *:22                                                                             *:*                  
+LISTEN      0      100                                                        127.0.0.1:25                                                                             *:*                  
+LISTEN      0      128                                                  192.168.130.139:16379                                                                          *:*                  
+LISTEN      0      128                                                               :::22                                                                            :::*                  
+LISTEN      0      100                                                              ::1:25                                                                            :::*                  
+[root@node8 ~]<span class="hljs-comment"># </span>
+[root@node8 ~]<span class="hljs-comment">#</span>
+
+
+11.3 在 node1 节点中使用 集群管理命令添加 node7 节点：
+
+查看当前集群状态：
+[root@node1 ~]<span class="hljs-comment"># </span>
+[root@node1 ~]<span class="hljs-comment"># ./redis-4.0.14/src/redis-trib.rb check 192.168.130.133:6379</span>
+&gt;&gt;&gt; Performing Cluster Check (using node 192.168.130.133:6379)
+S: d706c30afe9482e62b4ba83475eebd8ed99a83db 192.168.130.133:6379
+   slots: (0 slots) slave
+   replicates 6c49605108f82d7db6b53c9d5bbde60d48a994b8
+S: 70c8a72161b43872c64d2eac83f30a7339e2ab4e 192.168.130.132:6379
+   slots: (0 slots) slave
+   replicates a2ccb3e8bd3df5e19f950177de03197389e0ff42
+M: a2ccb3e8bd3df5e19f950177de03197389e0ff42 192.168.130.136:6379
+   slots:0-5460 (5461 slots) master
+   1 additional replica(s)
+M: 6c49605108f82d7db6b53c9d5bbde60d48a994b8 192.168.130.137:6379
+   slots:5461-10922 (5462 slots) master
+   1 additional replica(s)
+S: a85e5ae7cfdf57d487d33210b55e7c8c5625e49e 192.168.130.135:6379
+   slots: (0 slots) slave
+   replicates 27d19d7940567af5822fa44cafa82c2d6443bb9a
+M: 27d19d7940567af5822fa44cafa82c2d6443bb9a 192.168.130.134:6379
+   slots:10923-16383 (5461 slots) master
+   1 additional replica(s)
+[OK] All nodes agree about slots configuration.
+&gt;&gt;&gt; Check <span class="hljs-keyword">for</span> open slots...
+&gt;&gt;&gt; Check slots coverage...
+[OK] All 16384 slots covered.
+[root@node1 ~]<span class="hljs-comment"># </span>
+[root@node1 ~]<span class="hljs-comment"># </span>
+[root@node1 ~]<span class="hljs-comment"># </span>
+[root@node1 ~]<span class="hljs-comment">#</span>
+
+添加 node7， add-node 命令后添加 node8 和一个 原来集群主节点的地址
+[root@node1 ~]<span class="hljs-comment"># </span>
+[root@node1 ~]<span class="hljs-comment"># ./redis-4.0.14/src/redis-trib.rb add-node 192.168.130.138:6379 192.168.130.134:6379</span>
+&gt;&gt;&gt; Adding node 192.168.130.138:6379 to cluster 192.168.130.134:6379
+&gt;&gt;&gt; Performing Cluster Check (using node 192.168.130.134:6379)
+M: 27d19d7940567af5822fa44cafa82c2d6443bb9a 192.168.130.134:6379
+   slots:10923-16383 (5461 slots) master
+   1 additional replica(s)
+M: 6c49605108f82d7db6b53c9d5bbde60d48a994b8 192.168.130.137:6379
+   slots:5461-10922 (5462 slots) master
+   1 additional replica(s)
+S: a85e5ae7cfdf57d487d33210b55e7c8c5625e49e 192.168.130.135:6379
+   slots: (0 slots) slave
+   replicates 27d19d7940567af5822fa44cafa82c2d6443bb9a
+S: d706c30afe9482e62b4ba83475eebd8ed99a83db 192.168.130.133:6379
+   slots: (0 slots) slave
+   replicates 6c49605108f82d7db6b53c9d5bbde60d48a994b8
+M: a2ccb3e8bd3df5e19f950177de03197389e0ff42 192.168.130.136:6379
+   slots:0-5460 (5461 slots) master
+   1 additional replica(s)
+S: 70c8a72161b43872c64d2eac83f30a7339e2ab4e 192.168.130.132:6379
+   slots: (0 slots) slave
+   replicates a2ccb3e8bd3df5e19f950177de03197389e0ff42
+[OK] All nodes agree about slots configuration.
+&gt;&gt;&gt; Check <span class="hljs-keyword">for</span> open slots...
+&gt;&gt;&gt; Check slots coverage...
+[OK] All 16384 slots covered.
+&gt;&gt;&gt; Send CLUSTER MEET to node 192.168.130.138:6379 to make it join the cluster.
+[OK] New node added correctly.
+[root@node1 ~]<span class="hljs-comment"># </span>
+[root@node1 ~]<span class="hljs-comment">#</span>
+
+添加成功后查看集群状态, node7 被添加成主节点：
+[root@node1 ~]<span class="hljs-comment"># </span>
+[root@node1 ~]<span class="hljs-comment"># ./redis-4.0.14/src/redis-trib.rb check 192.168.130.133:6379</span>
+&gt;&gt;&gt; Performing Cluster Check (using node 192.168.130.133:6379)
+S: d706c30afe9482e62b4ba83475eebd8ed99a83db 192.168.130.133:6379
+   slots: (0 slots) slave
+   replicates 6c49605108f82d7db6b53c9d5bbde60d48a994b8
+S: 70c8a72161b43872c64d2eac83f30a7339e2ab4e 192.168.130.132:6379
+   slots: (0 slots) slave
+   replicates a2ccb3e8bd3df5e19f950177de03197389e0ff42
+M: a2ccb3e8bd3df5e19f950177de03197389e0ff42 192.168.130.136:6379
+   slots:0-5460 (5461 slots) master
+   1 additional replica(s)
+M: 6c49605108f82d7db6b53c9d5bbde60d48a994b8 192.168.130.137:6379
+   slots:5461-10922 (5462 slots) master
+   1 additional replica(s)
+S: a85e5ae7cfdf57d487d33210b55e7c8c5625e49e 192.168.130.135:6379
+   slots: (0 slots) slave
+   replicates 27d19d7940567af5822fa44cafa82c2d6443bb9a
+M: 9ab37fd519058af96fc62f0328f9fbc4e2d6fa29 192.168.130.138:6379
+   slots: (0 slots) master
+   0 additional replica(s)
+M: 27d19d7940567af5822fa44cafa82c2d6443bb9a 192.168.130.134:6379
+   slots:10923-16383 (5461 slots) master
+   1 additional replica(s)
+[OK] All nodes agree about slots configuration.
+&gt;&gt;&gt; Check <span class="hljs-keyword">for</span> open slots...
+&gt;&gt;&gt; Check slots coverage...
+[OK] All 16384 slots covered.
+[root@node1 ~]<span class="hljs-comment">#</span>
+[root@node1 ~]<span class="hljs-comment">#</span>
+[root@node1 ~]<span class="hljs-comment"># ./redis-4.0.14/src/redis-trib.rb info  192.168.130.133:6379</span>
+192.168.130.136:6379 (a2ccb3e8...) -&gt; 1 keys | 5461 slots | 1 slaves.
+192.168.130.137:6379 (6c496051...) -&gt; 1 keys | 5462 slots | 1 slaves.
+192.168.130.138:6379 (9ab37fd5...) -&gt; 0 keys | 0 slots | 0 slaves.
+192.168.130.134:6379 (27d19d79...) -&gt; 0 keys | 5461 slots | 1 slaves.
+[OK] 2 keys <span class="hljs-keyword">in</span> 4 masters.
+0.00 keys per slot on average.
+[root@node1 ~]<span class="hljs-comment"># </span>
+[root@node1 ~]<span class="hljs-comment">#</span>
+
+
+11.4 添加 node8 到集群中
+[root@node1 ~]<span class="hljs-comment"># </span>
+[root@node1 ~]<span class="hljs-comment"># ./redis-4.0.14/src/redis-trib.rb check 192.168.130.133:6379</span>
+&gt;&gt;&gt; Performing Cluster Check (using node 192.168.130.133:6379)
+S: d706c30afe9482e62b4ba83475eebd8ed99a83db 192.168.130.133:6379
+   slots: (0 slots) slave
+   replicates 6c49605108f82d7db6b53c9d5bbde60d48a994b8
+S: 70c8a72161b43872c64d2eac83f30a7339e2ab4e 192.168.130.132:6379
+   slots: (0 slots) slave
+   replicates a2ccb3e8bd3df5e19f950177de03197389e0ff42
+M: a2ccb3e8bd3df5e19f950177de03197389e0ff42 192.168.130.136:6379
+   slots:0-5460 (5461 slots) master
+   1 additional replica(s)
+M: 6c49605108f82d7db6b53c9d5bbde60d48a994b8 192.168.130.137:6379
+   slots:5461-10922 (5462 slots) master
+   1 additional replica(s)
+S: a85e5ae7cfdf57d487d33210b55e7c8c5625e49e 192.168.130.135:6379
+   slots: (0 slots) slave
+   replicates 27d19d7940567af5822fa44cafa82c2d6443bb9a
+M: bfaa4face74978d68ca46b4ece2e236380379381 192.168.130.139:6379
+   slots: (0 slots) master
+   0 additional replica(s)
+M: 9ab37fd519058af96fc62f0328f9fbc4e2d6fa29 192.168.130.138:6379
+   slots: (0 slots) master
+   0 additional replica(s)
+M: 27d19d7940567af5822fa44cafa82c2d6443bb9a 192.168.130.134:6379
+   slots:10923-16383 (5461 slots) master
+   1 additional replica(s)
+[OK] All nodes agree about slots configuration.
+&gt;&gt;&gt; Check <span class="hljs-keyword">for</span> open slots...
+&gt;&gt;&gt; Check slots coverage...
+[OK] All 16384 slots covered.
+[root@node1 ~]<span class="hljs-comment"># </span>
+[root@node1 ~]<span class="hljs-comment"># ./redis-4.0.14/src/redis-trib.rb info  192.168.130.133:6379</span>
+192.168.130.136:6379 (a2ccb3e8...) -&gt; 1 keys | 5461 slots | 1 slaves.
+192.168.130.137:6379 (6c496051...) -&gt; 1 keys | 5462 slots | 1 slaves.
+192.168.130.139:6379 (bfaa4fac...) -&gt; 0 keys | 0 slots | 0 slaves.
+192.168.130.138:6379 (9ab37fd5...) -&gt; 0 keys | 0 slots | 0 slaves.
+192.168.130.134:6379 (27d19d79...) -&gt; 0 keys | 5461 slots | 1 slaves.
+[OK] 2 keys <span class="hljs-keyword">in</span> 5 masters.
+0.00 keys per slot on average.
+[root@node1 ~]<span class="hljs-comment"># </span>
+[root@node1 ~]<span class="hljs-comment">#</span>
+
+
+11.5 登录 node8 的 redis 将它的 master 设置为 node7
+[root@node1 ~]<span class="hljs-comment"># </span>
+[root@node1 ~]<span class="hljs-comment"># </span>
+[root@node1 ~]<span class="hljs-comment"># redis-cli -h 192.168.130.139</span>
+192.168.130.139:6379&gt; auth 123456
+OK
+192.168.130.139:6379&gt; info Replication
+<span class="hljs-comment"># Replication</span>
+role:master
+connected_slaves:0
+master_replid:3330ecf7ff4f7e94abca507f3f1e4ba939fd9da9
+master_replid2:0000000000000000000000000000000000000000
+master_repl_offset:0
+second_repl_offset:-1
+repl_backlog_active:0
+repl_backlog_size:1048576
+repl_backlog_first_byte_offset:0
+repl_backlog_histlen:0
+192.168.130.139:6379&gt; 
+192.168.130.139:6379&gt; 
+192.168.130.139:6379&gt; cluster nodes
+70c8a72161b43872c64d2eac83f30a7339e2ab4e 192.168.130.132:6379@16379 slave a2ccb3e8bd3df5e19f950177de03197389e0ff42 0 1560914889366 7 connected
+a2ccb3e8bd3df5e19f950177de03197389e0ff42 192.168.130.136:6379@16379 master - 0 1560914888000 7 connected 0-5460
+6c49605108f82d7db6b53c9d5bbde60d48a994b8 192.168.130.137:6379@16379 master - 0 1560914885333 8 connected 5461-10922
+a85e5ae7cfdf57d487d33210b55e7c8c5625e49e 192.168.130.135:6379@16379 slave 27d19d7940567af5822fa44cafa82c2d6443bb9a 0 1560914888357 3 connected
+9ab37fd519058af96fc62f0328f9fbc4e2d6fa29 192.168.130.138:6379@16379 master - 0 1560914883000 13 connected
+27d19d7940567af5822fa44cafa82c2d6443bb9a 192.168.130.134:6379@16379 master - 0 1560914886000 3 connected 10923-16383
+d706c30afe9482e62b4ba83475eebd8ed99a83db 192.168.130.133:6379@16379 slave 6c49605108f82d7db6b53c9d5bbde60d48a994b8 0 1560914888000 8 connected
+bfaa4face74978d68ca46b4ece2e236380379381 192.168.130.139:6379@16379 myself,master - 0 1560914887000 0 connected
+192.168.130.139:6379&gt; 
+192.168.130.139:6379&gt;
+192.168.130.139:6379&gt;
+192.168.130.139:6379&gt; cluster replicate 9ab37fd519058af96fc62f0328f9fbc4e2d6fa29
+OK
+192.168.130.139:6379&gt; 
+192.168.130.139:6379&gt;
+192.168.130.139:6379&gt;
+192.168.130.139:6379&gt; cluster nodes
+70c8a72161b43872c64d2eac83f30a7339e2ab4e 192.168.130.132:6379@16379 slave a2ccb3e8bd3df5e19f950177de03197389e0ff42 0 1560914935000 7 connected
+a2ccb3e8bd3df5e19f950177de03197389e0ff42 192.168.130.136:6379@16379 master - 0 1560914935000 7 connected 0-5460
+6c49605108f82d7db6b53c9d5bbde60d48a994b8 192.168.130.137:6379@16379 master - 0 1560914933000 8 connected 5461-10922
+a85e5ae7cfdf57d487d33210b55e7c8c5625e49e 192.168.130.135:6379@16379 slave 27d19d7940567af5822fa44cafa82c2d6443bb9a 0 1560914933000 3 connected
+9ab37fd519058af96fc62f0328f9fbc4e2d6fa29 192.168.130.138:6379@16379 master - 0 1560914932000 13 connected
+27d19d7940567af5822fa44cafa82c2d6443bb9a 192.168.130.134:6379@16379 master - 0 1560914935792 3 connected 10923-16383
+d706c30afe9482e62b4ba83475eebd8ed99a83db 192.168.130.133:6379@16379 slave 6c49605108f82d7db6b53c9d5bbde60d48a994b8 0 1560914935000 8 connected
+bfaa4face74978d68ca46b4ece2e236380379381 192.168.130.139:6379@16379 myself,slave 9ab37fd519058af96fc62f0328f9fbc4e2d6fa29 0 1560914933000 0 connected
+192.168.130.139:6379&gt; <span class="hljs-built_in">exit</span>
+[root@node1 ~]<span class="hljs-comment"># </span>
+[root@node1 ~]<span class="hljs-comment"># </span>
+[root@node1 ~]<span class="hljs-comment"># </span>
+[root@node1 ~]<span class="hljs-comment"># ./redis-4.0.14/src/redis-trib.rb info  192.168.130.133:6379</span>
+192.168.130.136:6379 (a2ccb3e8...) -&gt; 1 keys | 5461 slots | 1 slaves.
+192.168.130.137:6379 (6c496051...) -&gt; 1 keys | 5462 slots | 1 slaves.
+192.168.130.138:6379 (9ab37fd5...) -&gt; 0 keys | 0 slots | 1 slaves.
+192.168.130.134:6379 (27d19d79...) -&gt; 0 keys | 5461 slots | 1 slaves.
+[OK] 2 keys <span class="hljs-keyword">in</span> 4 masters.
+0.00 keys per slot on average.
+[root@node1 ~]<span class="hljs-comment">#</span>
+
+
+
+
+11.6 现在 node7 和 node8 已经添加进集群， 但是没有槽位，下面我们重新分配一下槽位
+使用集群的 reshard 命令前，请清空所有节点的数据，然后再从新分配。因此需要提前备份
+redis 数据。
+
+[root@node1 ~]<span class="hljs-comment"># ./redis-4.0.14/src/redis-trib.rb reshard  192.168.130.133:6379</span>
+
+提示重新分配大小输入 4096
+
+选择要分配给 node7 的 id 号
+
+选择重所有主节点分配： all
+
+[root@node1 ~]<span class="hljs-comment"># ./redis-4.0.14/src/redis-trib.rb info  192.168.130.133:6379</span>
+192.168.130.136:6379 (a2ccb3e8...) -&gt; 0 keys | 4096 slots | 1 slaves.
+192.168.130.137:6379 (6c496051...) -&gt; 0 keys | 4096 slots | 1 slaves.
+192.168.130.138:6379 (9ab37fd5...) -&gt; 0 keys | 4096 slots | 1 slaves.
+192.168.130.134:6379 (27d19d79...) -&gt; 0 keys | 4096 slots | 1 slaves.
+[OK] 0 keys <span class="hljs-keyword">in</span> 4 masters.
+0.00 keys per slot on average.
+[root@node1 ~]<span class="hljs-comment">#</span>
+
+
+
+11.7 下线 redis 集群中的指定服务器
+和上面的演示类似， 首先要进行 reshard 将指定服务器的槽位移动到其他服务器
+
+我们将 node7 的槽位全部移动到 node3 中
+[root@node1 ~]<span class="hljs-comment"># ./redis-4.0.14/src/redis-trib.rb reshard  192.168.130.133:6379</span>
+&gt;&gt;&gt; Performing Cluster Check (using node 192.168.130.133:6379)
+S: d706c30afe9482e62b4ba83475eebd8ed99a83db 192.168.130.133:6379
+   slots: (0 slots) slave
+   replicates 6c49605108f82d7db6b53c9d5bbde60d48a994b8
+S: 70c8a72161b43872c64d2eac83f30a7339e2ab4e 192.168.130.132:6379
+   slots: (0 slots) slave
+   replicates a2ccb3e8bd3df5e19f950177de03197389e0ff42
+M: a2ccb3e8bd3df5e19f950177de03197389e0ff42 192.168.130.136:6379
+   slots:1365-5460 (4096 slots) master
+   1 additional replica(s)
+M: 6c49605108f82d7db6b53c9d5bbde60d48a994b8 192.168.130.137:6379
+   slots:6827-10922 (4096 slots) master
+   1 additional replica(s)
+S: a85e5ae7cfdf57d487d33210b55e7c8c5625e49e 192.168.130.135:6379
+   slots: (0 slots) slave
+   replicates 27d19d7940567af5822fa44cafa82c2d6443bb9a
+S: bfaa4face74978d68ca46b4ece2e236380379381 192.168.130.139:6379
+   slots: (0 slots) slave
+   replicates 9ab37fd519058af96fc62f0328f9fbc4e2d6fa29
+M: 9ab37fd519058af96fc62f0328f9fbc4e2d6fa29 192.168.130.138:6379
+   slots:0-1364,5461-6826,10923-12287 (4096 slots) master
+   1 additional replica(s)
+M: 27d19d7940567af5822fa44cafa82c2d6443bb9a 192.168.130.134:6379
+   slots:12288-16383 (4096 slots) master
+   1 additional replica(s)
+[OK] All nodes agree about slots configuration.
+&gt;&gt;&gt; Check <span class="hljs-keyword">for</span> open slots...
+&gt;&gt;&gt; Check slots coverage...
+[OK] All 16384 slots covered.
+How many slots <span class="hljs-keyword">do</span> you want to move (from 1 to 16384)? 4096
+What is the receiving node ID? a2ccb3e8bd3df5e19f950177de03197389e0ff42
+Please enter all the <span class="hljs-built_in">source</span> node IDs.
+  Type <span class="hljs-string">'all'</span> to use all the nodes as <span class="hljs-built_in">source</span> nodes <span class="hljs-keyword">for</span> the <span class="hljs-built_in">hash</span> slots.
+  Type <span class="hljs-string">'done'</span> once you entered all the <span class="hljs-built_in">source</span> nodes IDs.
+Source node <span class="hljs-comment">#1:9ab37fd519058af96fc62f0328f9fbc4e2d6fa29</span>
+Source node <span class="hljs-comment">#2:done</span>
+.
+.
+.省略分配输出信息...
+.
+.
+Moving slot 12284 from 192.168.130.138:6379 to 192.168.130.134:6379: 
+Moving slot 12285 from 192.168.130.138:6379 to 192.168.130.134:6379: 
+Moving slot 12286 from 192.168.130.138:6379 to 192.168.130.134:6379: 
+Moving slot 12287 from 192.168.130.138:6379 to 192.168.130.134:6379: 
+[root@node1 ~]<span class="hljs-comment"># ./redis-4.0.14/src/redis-trib.rb info  192.168.130.133:6379</span>
+192.168.130.136:6379 (a2ccb3e8...) -&gt; 0 keys | 4096 slots | 1 slaves.
+192.168.130.137:6379 (6c496051...) -&gt; 0 keys | 4096 slots | 1 slaves.
+192.168.130.138:6379 (9ab37fd5...) -&gt; 0 keys | 0 slots | 1 slaves.
+192.168.130.134:6379 (27d19d79...) -&gt; 0 keys | 8192 slots | 1 slaves.
+[OK] 0 keys <span class="hljs-keyword">in</span> 4 masters.
+0.00 keys per slot on average.
+[root@node1 ~]<span class="hljs-comment"># </span>
+[root@node1 ~]<span class="hljs-comment">#</span>
+
+使用集群命令 删除 node7节点， 编号为 node7 的编号：
+[root@node1 ~]<span class="hljs-comment"># </span>
+[root@node1 ~]<span class="hljs-comment"># ./redis-4.0.14/src/redis-trib.rb check  192.168.130.133:6379</span>
+&gt;&gt;&gt; Performing Cluster Check (using node 192.168.130.133:6379)
+S: d706c30afe9482e62b4ba83475eebd8ed99a83db 192.168.130.133:6379
+   slots: (0 slots) slave
+   replicates 27d19d7940567af5822fa44cafa82c2d6443bb9a
+S: 70c8a72161b43872c64d2eac83f30a7339e2ab4e 192.168.130.132:6379
+   slots: (0 slots) slave
+   replicates a2ccb3e8bd3df5e19f950177de03197389e0ff42
+M: a2ccb3e8bd3df5e19f950177de03197389e0ff42 192.168.130.136:6379
+   slots:0-4095 (4096 slots) master
+   1 additional replica(s)
+M: 6c49605108f82d7db6b53c9d5bbde60d48a994b8 192.168.130.137:6379
+   slots:4096-8191 (4096 slots) master
+   1 additional replica(s)
+S: a85e5ae7cfdf57d487d33210b55e7c8c5625e49e 192.168.130.135:6379
+   slots: (0 slots) slave
+   replicates 6c49605108f82d7db6b53c9d5bbde60d48a994b8
+S: bfaa4face74978d68ca46b4ece2e236380379381 192.168.130.139:6379
+   slots: (0 slots) slave
+   replicates 27d19d7940567af5822fa44cafa82c2d6443bb9a
+M: 9ab37fd519058af96fc62f0328f9fbc4e2d6fa29 192.168.130.138:6379
+   slots: (0 slots) master
+   0 additional replica(s)
+M: 27d19d7940567af5822fa44cafa82c2d6443bb9a 192.168.130.134:6379
+   slots:8192-16383 (8192 slots) master
+   2 additional replica(s)
+[OK] All nodes agree about slots configuration.
+&gt;&gt;&gt; Check <span class="hljs-keyword">for</span> open slots...
+&gt;&gt;&gt; Check slots coverage...
+[OK] All 16384 slots covered.
+[root@node1 ~]<span class="hljs-comment"># </span>
+[root@node1 ~]<span class="hljs-comment"># </span>
+[root@node1 ~]<span class="hljs-comment"># ./redis-4.0.14/src/redis-trib.rb del-node  192.168.130.133:6379 9ab37fd519058af96fc62f0328f9fbc4e2d6fa29</span>
+&gt;&gt;&gt; Removing node 9ab37fd519058af96fc62f0328f9fbc4e2d6fa29 from cluster 192.168.130.133:6379
+&gt;&gt;&gt; Sending CLUSTER FORGET messages to the cluster...
+&gt;&gt;&gt; SHUTDOWN the node.
+[root@node1 ~]<span class="hljs-comment"># </span>
+[root@node1 ~]<span class="hljs-comment"># ./redis-4.0.14/src/redis-trib.rb info  192.168.130.133:6379</span>
+192.168.130.136:6379 (a2ccb3e8...) -&gt; 0 keys | 4096 slots | 1 slaves.
+192.168.130.137:6379 (6c496051...) -&gt; 0 keys | 4096 slots | 1 slaves.
+192.168.130.134:6379 (27d19d79...) -&gt; 0 keys | 8192 slots | 2 slaves.
+[OK] 0 keys <span class="hljs-keyword">in</span> 3 masters.
+0.00 keys per slot on average.
+[root@node1 ~]<span class="hljs-comment"># </span>
+[root@node1 ~]<span class="hljs-comment"># </span>
+[root@node1 ~]<span class="hljs-comment">#</span>
+
+删除 node7 的从节点 node8 
+[root@node1 ~]<span class="hljs-comment"># ./redis-4.0.14/src/redis-trib.rb check  192.168.130.133:6379</span>
+&gt;&gt;&gt; Performing Cluster Check (using node 192.168.130.133:6379)
+S: d706c30afe9482e62b4ba83475eebd8ed99a83db 192.168.130.133:6379
+   slots: (0 slots) slave
+   replicates 27d19d7940567af5822fa44cafa82c2d6443bb9a
+S: 70c8a72161b43872c64d2eac83f30a7339e2ab4e 192.168.130.132:6379
+   slots: (0 slots) slave
+   replicates a2ccb3e8bd3df5e19f950177de03197389e0ff42
+M: a2ccb3e8bd3df5e19f950177de03197389e0ff42 192.168.130.136:6379
+   slots:0-4095 (4096 slots) master
+   1 additional replica(s)
+M: 6c49605108f82d7db6b53c9d5bbde60d48a994b8 192.168.130.137:6379
+   slots:4096-8191 (4096 slots) master
+   1 additional replica(s)
+S: a85e5ae7cfdf57d487d33210b55e7c8c5625e49e 192.168.130.135:6379
+   slots: (0 slots) slave
+   replicates 6c49605108f82d7db6b53c9d5bbde60d48a994b8
+S: bfaa4face74978d68ca46b4ece2e236380379381 192.168.130.139:6379
+   slots: (0 slots) slave
+   replicates 27d19d7940567af5822fa44cafa82c2d6443bb9a
+M: 27d19d7940567af5822fa44cafa82c2d6443bb9a 192.168.130.134:6379
+   slots:8192-16383 (8192 slots) master
+   2 additional replica(s)
+[OK] All nodes agree about slots configuration.
+&gt;&gt;&gt; Check <span class="hljs-keyword">for</span> open slots...
+&gt;&gt;&gt; Check slots coverage...
+[OK] All 16384 slots covered.
+[root@node1 ~]<span class="hljs-comment"># ./redis-4.0.14/src/redis-trib.rb del-node  192.168.130.133:6379 bfaa4face74978d68ca46b4ece2e236380379381</span>
+&gt;&gt;&gt; Removing node bfaa4face74978d68ca46b4ece2e236380379381 from cluster 192.168.130.133:6379
+&gt;&gt;&gt; Sending CLUSTER FORGET messages to the cluster...
+&gt;&gt;&gt; SHUTDOWN the node.
+[root@node1 ~]<span class="hljs-comment"># </span>
+[root@node1 ~]<span class="hljs-comment"># </span>
+[root@node1 ~]<span class="hljs-comment"># ./redis-4.0.14/src/redis-trib.rb check  192.168.130.133:6379</span>
+&gt;&gt;&gt; Performing Cluster Check (using node 192.168.130.133:6379)
+S: d706c30afe9482e62b4ba83475eebd8ed99a83db 192.168.130.133:6379
+   slots: (0 slots) slave
+   replicates 27d19d7940567af5822fa44cafa82c2d6443bb9a
+S: 70c8a72161b43872c64d2eac83f30a7339e2ab4e 192.168.130.132:6379
+   slots: (0 slots) slave
+   replicates a2ccb3e8bd3df5e19f950177de03197389e0ff42
+M: a2ccb3e8bd3df5e19f950177de03197389e0ff42 192.168.130.136:6379
+   slots:0-4095 (4096 slots) master
+   1 additional replica(s)
+M: 6c49605108f82d7db6b53c9d5bbde60d48a994b8 192.168.130.137:6379
+   slots:4096-8191 (4096 slots) master
+   1 additional replica(s)
+S: a85e5ae7cfdf57d487d33210b55e7c8c5625e49e 192.168.130.135:6379
+   slots: (0 slots) slave
+   replicates 6c49605108f82d7db6b53c9d5bbde60d48a994b8
+M: 27d19d7940567af5822fa44cafa82c2d6443bb9a 192.168.130.134:6379
+   slots:8192-16383 (8192 slots) master
+   1 additional replica(s)
+[OK] All nodes agree about slots configuration.
+&gt;&gt;&gt; Check <span class="hljs-keyword">for</span> open slots...
+&gt;&gt;&gt; Check slots coverage...
+[OK] All 16384 slots covered.
+[root@node1 ~]<span class="hljs-comment">#</span>
+</div></code></pre>
+
+</body>
+</html>
