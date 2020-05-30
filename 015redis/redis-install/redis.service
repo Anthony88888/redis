@@ -1,0 +1,18 @@
+[Unit]
+Description=Redis persistent key-value database
+After=network.target
+After=network-online.target
+#Wante=network-online.target
+
+[Service]
+RuntimeDirectory=redis
+RuntimeDirectoryMode=0755
+Type=notify
+User=redis
+Group=redis
+ExecReload=/bin/kill -s HUP $MAINPID
+ExecStart=/data/redis/bin/redis-server /data/redis/etc/redis.conf --supervised systemd
+ExecStop=/bin/kill -s QUIT $MAINPID
+
+[Install]
+WantedBy=multi-user.target
